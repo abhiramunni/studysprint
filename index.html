@@ -557,8 +557,11 @@ const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matche
   // staggered letters
   const t=$("introTitle"), txt=t.textContent; t.textContent="";
   [...txt].forEach((ch,i)=>{ const s=document.createElement("span"); s.className="ch"; s.style.animationDelay=(0.55+i*0.055)+"s"; s.textContent=ch; t.appendChild(s); });
-  // gold dust particles
-  const cv=$("introCv"), cx=cv.getContext("2d"); let W,H,ps=[];
+  // gold dust particles (guarded — intro must survive even if canvas fails)
+  let cx=null;
+  try{ cx=$("introCv").getContext("2d"); }catch(e){ cx=null; }
+  if(cx){
+  const cv=$("introCv"); let W,H,ps=[];
   function size(){ W=cv.width=ov.clientWidth; H=cv.height=ov.clientHeight; }
   size(); addEventListener("resize",size);
   for(let i=0;i<70;i++) ps.push({x:Math.random(),y:Math.random(),r:Math.random()*2.2+.6,s:Math.random()*.0009+.0003,o:Math.random()*.7+.15,ph:Math.random()*6.28});
@@ -573,13 +576,14 @@ const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matche
     });
     if(!ov.classList.contains("gone")) raf=requestAnimationFrame(loop); else cancelAnimationFrame(raf);
   })();
+  }
   const quick=S.introSeen, DUR=quick?1100:3000;
-  if(!reduceMotion){ $("introBarFill").style.transition="width "+(DUR/1000)+"s linear"; requestAnimationFrame(()=>{ $("introBarFill").style.width="100%"; }); }
+  if(!reduceMotion()){ $("introBarFill").style.transition="width "+(DUR/1000)+"s linear"; requestAnimationFrame(()=>{ $("introBarFill").style.width="100%"; }); }
   else { $("introBarFill").style.width="100%"; }
   let done=false;
   function finish(){ if(done) return; done=true; ov.classList.add("gone"); S.introSeen=true; save(); setTimeout(()=>ov.remove(),800); }
   ov.addEventListener("click",finish);
-  setTimeout(finish, reduceMotion? 400 : DUR);
+  setTimeout(finish, reduceMotion()? 400 : DUR);
 })();
 
 /* ============ navigation (pill nav + bottom nav stay in sync) ============ */
