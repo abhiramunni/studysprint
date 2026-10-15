@@ -2,9 +2,11 @@
 
 **Tagline:** Count down to your board exams, master every chapter, and study with focus — all in one beautiful planner.
 
+**Live:** https://abhiramunni.github.io/studysprint/
+
 ## What it does
 
-StudySprint is a single-page web app built for students preparing for board exams (Class 10, Class 12, or any exam). It combines four tools students otherwise juggle across notebooks and apps:
+StudySprint is a single-page web app for students preparing for board exams (Class 10, Class 12, or any exam). It combines four tools students otherwise juggle across notebooks and apps:
 
 - **Exam countdowns** — add any exam with its date; a live ticking countdown (days / hours / minutes / seconds) with a progress ring keeps the deadline real. Supports multiple exams (prelims + boards).
 - **Subject & chapter tracker** — break each subject into chapters, tick them off, and watch per-subject progress bars and an overall syllabus-completion stat grow.
@@ -14,24 +16,20 @@ StudySprint is a single-page web app built for students preparing for board exam
 
 ## Who it's for
 
-School and college students (especially Class 10/12 board aspirants), and anyone preparing for a dated exam who wants structure without signing up for anything.
+School and college students, **and their parents** — plain-language helpers throughout plus a "Note for parents" card explaining streaks, chapters, focus hours and the revision queue. No sign-up, no jargon.
 
-## Features
+## Design — "Academia" v2 (Oct 2026 redesign)
 
-- Live per-second exam countdowns with progress rings and plain-words nudges ("Tomorrow! Light revision only.")
-- Subjects with custom colours, chapter checklists, and animated progress bars
-- Today's task list with minutes estimates
-- Pomodoro timer: focus/break modes, start / pause / resume / reset, session counter, custom durations
-- Streak tracking (a day counts when you finish a task or a focus session)
-- Stats dashboard: streak, chapters done, focus hours, syllabus %, 7-day minutes bar chart
-- Revision queue with "Revise today" flags and one-tap completion
-- 3-step first-run onboarding, helper text, tooltips, friendly empty states
-- Fully responsive mobile-first design; respects `prefers-reduced-motion`
-- Zero emojis — hand-drawn inline SVG icon set throughout
+- **Palette:** warm ivory paper (`#FAF6EE`), espresso ink (`#241A10`), burnt amber/bronze (`#A85B12`), terracotta clay (`#9C3A1E`), gold (`#D9A441`). Professional, warm, print-like — deliberately not a flat violet/green/blue theme.
+- **Typography:** Fraunces (serif display) + Inter (UI).
+- **Cinematic full-screen intro:** espresso backdrop, rising gold-dust canvas particles, stroke-drawn book logo, staggered title letters, progress bar, tap-to-skip. Full version on first launch, quick version on return visits.
+- **Aesthetic study photography** with slow Ken Burns drift for video-like motion (real video generation is region-blocked): golden-hour study desk hero, note-writing close-up, grand library hall — in `assets/`.
+- Motion: motion-one entrance springs, breathing timer halo, animated progress rings/bars; `prefers-reduced-motion` respected throughout.
+- Zero emojis — hand-drawn inline SVG icon set throughout.
 
 ## How to use
 
-1. Open the app. The 3-step welcome tour explains the flow (or skip it).
+1. Open the app — the cinematic intro plays, then a 3-step welcome tour explains the flow (or skip it).
 2. **Exams tab:** type an exam name (e.g. "Class 12 Boards"), pick its date, tap **Add exam**. The countdown starts ticking immediately.
 3. **Study tab:** add a subject (pick a colour), then add its chapters one by one. Tick chapters off as you finish them. Flag shaky chapters with the circular-arrow button to send them to the revision queue.
 4. Still in **Study tab:** add today's tasks — what you'll study, which subject, how many minutes. Check them off when done; each completed task keeps your streak alive.
@@ -40,14 +38,10 @@ School and college students (especially Class 10/12 board aspirants), and anyone
 
 ## Tech stack
 
-- Single self-contained `index.html` — HTML, CSS, and vanilla JavaScript inline
-- [Motion One](https://motion.dev/) (CDN) for spring animations, staggered entrances, and count-ups
-- [Inter](https://fonts.google.com/specimen/Inter) typeface (Google Fonts CDN)
-- SVG for all icons, progress rings, gauges, and charts — no image assets
-
-## Live demo
-
-https://abhiramunni.github.io/studysprint/
+- `index.html` — the whole app (HTML, CSS, vanilla JS); `assets/` holds the three study photographs
+- [Motion One](https://motion.dev/) (CDN) for spring animations and staggered entrances
+- [Fraunces](https://fonts.google.com/specimen/Fraunces) + [Inter](https://fonts.google.com/specimen/Inter) (Google Fonts CDN)
+- SVG for icons, progress rings, and charts
 
 ## Data & privacy
 

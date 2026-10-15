@@ -4,203 +4,290 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>StudySprint — Exam Countdown & Study Planner</title>
-<meta name="description" content="StudySprint: count down to your board exams, track subjects and chapters, plan daily study tasks, and focus with a Pomodoro timer.">
+<meta name="description" content="StudySprint: count down to your exams, track subjects and chapters, plan daily study tasks, and focus with a Pomodoro timer. Simple enough for kids and parents.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@motionone/dom@10.16.2/dist/motion-one.umd.min.js"></script>
 <style>
 :root{
-  --bg:#050315; --text:#fbfbfe; --muted:#a7a3c7;
-  --primary:#2f27ce; --secondary:#dedcff; --accent:#433bff;
-  --card:rgba(255,255,255,.055); --card-border:rgba(255,255,255,.12);
-  --green:#34d399; --amber:#fbbf24; --rose:#fb7185; --sky:#38bdf8;
-  --radius:20px; --nav-h:68px;
+  --paper:#FAF6EE; --paper2:#F3ECDC; --card:#FFFDF7; --ink:#241A10; --muted:#7C6F5E;
+  --line:#E9DDC4; --bronze:#A85B12; --bronze-deep:#7E4410; --clay:#9C3A1E;
+  --gold:#D9A441; --gold-soft:#F5DEA8; --leaf:#5F7A3A; --rose:#B3402E;
+  --shadow:0 18px 44px -20px rgba(96,62,18,.28);
+  --radius:22px; --nav-h:76px;
 }
-*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html{scroll-behavior:smooth;}
 body{
-  margin:0; font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--text);
-  min-height:100vh; overflow-x:hidden; padding-bottom:calc(var(--nav-h) + 24px);
+  margin:0;font-family:'Inter',system-ui,sans-serif;background:var(--paper);color:var(--ink);
+  min-height:100vh;overflow-x:hidden;padding-bottom:calc(var(--nav-h) + 28px);
+  background-image:radial-gradient(1100px 500px at 50% -8%, #F7EBD2 0%, var(--paper) 60%);
 }
-/* animated background */
-.bg-fx{position:fixed; inset:0; z-index:-2; overflow:hidden; background:radial-gradient(1200px 800px at 80% -10%, #1b1660 0%, var(--bg) 55%) , var(--bg);}
-.blob{position:absolute; border-radius:50%; filter:blur(90px); opacity:.5; animation:drift 18s ease-in-out infinite alternate;}
-.blob.b1{width:420px;height:420px;background:#2f27ce;top:-120px;left:-120px;}
-.blob.b2{width:360px;height:360px;background:#433bff;bottom:-100px;right:-100px;animation-delay:-6s;}
-.blob.b3{width:280px;height:280px;background:#7c3aed;top:40%;left:60%;opacity:.3;animation-delay:-12s;}
-@keyframes drift{from{transform:translate(0,0) scale(1);}to{transform:translate(60px,40px) scale(1.15);}}
-header.topbar{
-  position:sticky; top:0; z-index:20;
-  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
-  background:rgba(5,3,21,.72); border-bottom:1px solid var(--card-border);
-  padding:14px 18px; display:flex; align-items:center; gap:12px;
-}
-.logo{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;
-  background:linear-gradient(135deg,var(--primary),var(--accent));
-  box-shadow:0 6px 20px rgba(67,59,255,.45); flex:none;}
-.logo svg{width:24px;height:24px;}
-.brand h1{margin:0;font-size:19px;font-weight:800;letter-spacing:-.02em;}
-.brand p{margin:2px 0 0;font-size:12px;color:var(--muted);}
+.serif{font-family:'Fraunces',Georgia,serif;}
+::selection{background:var(--gold-soft);}
+
+/* ============ INTRO (fullscreen cinematic) ============ */
+#intro{position:fixed;inset:0;z-index:100;background:#17100A;display:grid;place-items:center;
+  overflow:hidden;cursor:pointer;transition:opacity .7s ease, visibility .7s;}
+#intro.gone{opacity:0;visibility:hidden;pointer-events:none;}
+#introCv{position:absolute;inset:0;width:100%;height:100%;}
+.intro-inner{position:relative;text-align:center;padding:24px;max-width:520px;
+  animation:introUp 1s cubic-bezier(.22,1,.36,1) both .15s;}
+@keyframes introUp{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:none;}}
+.intro-mark{width:92px;height:92px;margin:0 auto 22px;border-radius:28px;display:grid;place-items:center;
+  background:linear-gradient(135deg,#3A2410,#17100A);border:1px solid rgba(217,164,65,.5);
+  box-shadow:0 0 60px rgba(217,164,65,.25), inset 0 0 24px rgba(217,164,65,.12);}
+.intro-mark svg{width:52px;height:52px;}
+.intro-mark .draw{stroke-dasharray:120;stroke-dashoffset:120;animation:draw 1.4s ease forwards .4s;}
+@keyframes draw{to{stroke-dashoffset:0;}}
+.intro-title{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(38px,9vw,58px);
+  color:#F7EBD2;letter-spacing:-.02em;margin:0 0 10px;line-height:1.05;}
+.intro-title .ch{display:inline-block;opacity:0;transform:translateY(.6em) rotate(4deg);
+  animation:chIn .55s cubic-bezier(.22,1,.36,1) forwards;}
+@keyframes chIn{to{opacity:1;transform:none;}}
+.intro-tag{color:#C9A86A;font-size:15px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;
+  opacity:0;animation:introUp .8s ease forwards 1.15s;margin:0 0 26px;}
+.intro-bar{width:min(320px,70vw);height:3px;margin:0 auto;border-radius:99px;background:rgba(217,164,65,.18);overflow:hidden;}
+.intro-bar i{display:block;height:100%;width:0;border-radius:99px;
+  background:linear-gradient(90deg,var(--bronze),var(--gold));}
+.intro-skip{position:absolute;bottom:calc(26px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;
+  color:rgba(247,235,210,.5);font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;}
+
+/* ============ HEADER ============ */
+header.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;
+  padding:13px 18px;background:rgba(250,246,238,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line);}
+.logo{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;flex:none;color:#FFF7E8;
+  background:linear-gradient(135deg,var(--bronze),var(--clay));
+  box-shadow:0 8px 20px -6px rgba(140,70,10,.55);}
+.logo svg{width:25px;height:25px;}
+.brand h1{margin:0;font-family:'Fraunces',serif;font-size:21px;font-weight:900;letter-spacing:-.01em;}
+.brand p{margin:1px 0 0;font-size:12px;color:var(--muted);}
 .streak-pill{margin-left:auto;display:flex;align-items:center;gap:7px;background:var(--card);
-  border:1px solid var(--card-border);border-radius:999px;padding:8px 14px;font-weight:700;font-size:14px;}
+  border:1px solid var(--line);border-radius:999px;padding:8px 15px;font-weight:700;font-size:13.5px;
+  box-shadow:0 6px 16px -8px rgba(96,62,18,.35);white-space:nowrap;}
 .streak-pill svg{width:18px;height:18px;}
-main{max-width:860px;margin:0 auto;padding:18px 16px 8px;}
+
+/* ============ HERO ============ */
+.hero{position:relative;margin:16px 16px 6px;border-radius:26px;overflow:hidden;min-height:300px;
+  display:flex;align-items:flex-end;box-shadow:var(--shadow);border:1px solid var(--line);
+  transform:translateZ(0);}
+.hero img.kb{position:absolute;inset:-6%;width:112%;height:112%;object-fit:cover;
+  animation:kb 26s ease-in-out infinite alternate;}
+@keyframes kb{from{transform:scale(1) translate(0,0);}to{transform:scale(1.1) translate(-1.6%,1.4%);}}
+.hero::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(23,16,10,.05) 30%,rgba(23,16,10,.78) 100%);}
+.hero-txt{position:relative;z-index:2;padding:22px;color:#FFF7E8;width:100%;}
+.hero-kicker{font-size:11.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-soft);
+  margin:0 0 6px;}
+.hero-txt h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(26px,6.4vw,36px);margin:0 0 4px;
+  letter-spacing:-.015em;line-height:1.08;text-shadow:0 2px 18px rgba(0,0,0,.35);}
+.hero-txt p{margin:0 0 14px;font-size:13.5px;color:rgba(255,247,232,.85);}
+.chips{display:flex;gap:9px;flex-wrap:wrap;}
+.chip{display:flex;align-items:center;gap:8px;background:rgba(255,253,247,.14);border:1px solid rgba(255,253,247,.35);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:999px;padding:8px 14px;
+  font-size:12.5px;font-weight:700;color:#FFF7E8;}
+.chip b{font-size:15px;color:var(--gold-soft);}
+
+/* ============ PILL NAV ============ */
+.pillnav{position:sticky;top:69px;z-index:25;display:flex;gap:6px;margin:14px 16px 4px;padding:6px;
+  background:rgba(255,253,247,.9);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--line);border-radius:999px;box-shadow:0 10px 26px -14px rgba(96,62,18,.4);}
+.pillnav button{flex:1;border:none;background:transparent;font-family:inherit;font-weight:700;font-size:13px;
+  color:var(--muted);padding:11px 6px;border-radius:999px;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;gap:7px;transition:all .28s cubic-bezier(.22,1,.36,1);white-space:nowrap;}
+.pillnav button svg{width:17px;height:17px;}
+.pillnav button.on{background:linear-gradient(135deg,var(--bronze),var(--clay));color:#FFF7E8;
+  box-shadow:0 8px 18px -6px rgba(140,70,10,.6);}
+
+main{max-width:880px;margin:0 auto;padding:14px 16px 8px;}
 .view{display:none;}
-.view.active{display:block;animation:fadeUp .35s ease;}
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
-.card{
-  background:var(--card); border:1px solid var(--card-border); border-radius:var(--radius);
-  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-  padding:18px; margin-bottom:16px; position:relative; overflow:hidden;
-}
-.card::before{content:"";position:absolute;top:0;left:16px;right:16px;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);}
-.card h2{margin:0 0 4px;font-size:17px;font-weight:700;letter-spacing:-.01em;}
-.card .sub{margin:0 0 12px;font-size:13px;color:var(--muted);line-height:1.5;}
-.helper{font-size:12px;color:var(--muted);margin:6px 0 0;line-height:1.5;}
+.view.active{display:block;animation:fadeUp .4s cubic-bezier(.22,1,.36,1);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+
+.banner{position:relative;border-radius:var(--radius);overflow:hidden;margin-bottom:16px;min-height:150px;
+  display:flex;align-items:flex-end;box-shadow:var(--shadow);border:1px solid var(--line);}
+.banner img.kb{position:absolute;inset:-6%;width:112%;height:112%;object-fit:cover;animation:kb 30s ease-in-out infinite alternate;}
+.banner::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(23,16,10,0) 20%,rgba(23,16,10,.72) 100%);}
+.banner span{position:relative;z-index:2;padding:16px 18px;color:#FFF7E8;font-family:'Fraunces',serif;
+  font-weight:700;font-size:19px;text-shadow:0 2px 12px rgba(0,0,0,.4);}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:20px;margin-bottom:16px;position:relative;overflow:hidden;}
+.card::before{content:"";position:absolute;top:0;left:22px;right:22px;height:2px;border-radius:99px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.7;}
+.card h2{margin:0 0 4px;font-family:'Fraunces',serif;font-size:20px;font-weight:700;letter-spacing:-.01em;}
+.card .sub{margin:0 0 14px;font-size:13.5px;color:var(--muted);line-height:1.55;}
+.helper{font-size:12.5px;color:var(--muted);margin:8px 0 0;line-height:1.55;}
+.helper b{color:var(--ink);}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
 input[type=text],input[type=date],input[type=number],select{
-  background:rgba(255,255,255,.07);border:1px solid var(--card-border);color:var(--text);
-  border-radius:12px;padding:11px 13px;font-size:14px;font-family:inherit;width:100%;outline:none;
-  transition:border-color .2s, box-shadow .2s;
-}
-input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(67,59,255,.25);}
-input[type=date]{color-scheme:dark;}
-label.f{display:block;font-size:12.5px;font-weight:600;color:var(--secondary);margin:10px 0 5px;}
-.btn{
-  appearance:none;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:14px;
-  border-radius:13px;padding:12px 18px;color:#fff;
-  background:linear-gradient(135deg,var(--primary),var(--accent));
-  box-shadow:0 6px 18px rgba(67,59,255,.4);
+  background:#fff;border:1.5px solid var(--line);color:var(--ink);
+  border-radius:13px;padding:12px 14px;font-size:14px;font-family:inherit;width:100%;outline:none;
+  transition:border-color .2s, box-shadow .2s;}
+input:focus,select:focus{border-color:var(--bronze);box-shadow:0 0 0 3px rgba(168,91,18,.16);}
+input[type=date]{color-scheme:light;}
+label.f{display:block;font-size:12.5px;font-weight:700;color:var(--bronze-deep);margin:12px 0 6px;
+  text-transform:uppercase;letter-spacing:.05em;font-size:11.5px;}
+.btn{appearance:none;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:14px;
+  border-radius:14px;padding:13px 20px;color:#FFF7E8;
+  background:linear-gradient(135deg,var(--bronze),var(--clay));
+  box-shadow:0 10px 22px -8px rgba(140,70,10,.6);
   display:inline-flex;align-items:center;gap:8px;justify-content:center;
-  transition:transform .15s ease, box-shadow .2s;
-}
+  transition:transform .16s ease, box-shadow .25s, filter .2s;}
+.btn:hover{filter:brightness(1.06);}
 .btn:active{transform:scale(.96);}
 .btn svg{width:17px;height:17px;}
-.btn.ghost{background:rgba(255,255,255,.08);box-shadow:none;border:1px solid var(--card-border);}
-.btn.danger{background:linear-gradient(135deg,#be123c,#fb7185);box-shadow:0 6px 18px rgba(251,113,133,.3);}
-.btn.small{padding:8px 13px;font-size:13px;border-radius:10px;}
-.icon-btn{background:rgba(255,255,255,.07);border:1px solid var(--card-border);color:var(--text);
-  width:36px;height:36px;border-radius:11px;display:grid;place-items:center;cursor:pointer;flex:none;
+.btn.ghost{background:transparent;box-shadow:none;border:1.5px solid var(--line);color:var(--ink);}
+.btn.danger{background:linear-gradient(135deg,#C0492F,var(--rose));box-shadow:0 10px 22px -8px rgba(179,64,46,.55);}
+.btn.small{padding:9px 15px;font-size:13px;border-radius:11px;}
+.btn.gold{background:linear-gradient(135deg,#C98A2B,var(--gold));color:#241A10;}
+.icon-btn{background:#fff;border:1.5px solid var(--line);color:var(--ink);
+  width:37px;height:37px;border-radius:12px;display:grid;place-items:center;cursor:pointer;flex:none;
   transition:transform .15s, background .2s;}
 .icon-btn:active{transform:scale(.9);}
 .icon-btn svg{width:17px;height:17px;}
 .icon-btn.danger{color:var(--rose);}
+.icon-btn.gold{color:var(--bronze-deep);border-color:var(--gold-soft);background:#FFFBF0;}
+
 /* countdown */
 .exam-card{display:flex;gap:16px;align-items:center;}
-.ring-wrap{position:relative;width:104px;height:104px;flex:none;}
+.ring-wrap{position:relative;width:108px;height:108px;flex:none;}
 .ring-wrap svg{transform:rotate(-90deg);}
-.ring-bg{stroke:rgba(255,255,255,.1);}
+.ring-bg{stroke:var(--paper2);}
 .ring-fg{stroke:url(#ringGrad);stroke-linecap:round;transition:stroke-dashoffset 1s ease;}
 .ring-center{position:absolute;inset:0;display:grid;place-items:center;text-align:center;}
-.ring-center b{font-size:26px;font-weight:800;letter-spacing:-.02em;}
-.ring-center span{font-size:10.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
+.ring-center b{font-size:27px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;}
+.ring-center span{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.07em;}
 .exam-info{flex:1;min-width:0;}
-.exam-info h3{margin:0 0 3px;font-size:16.5px;font-weight:700;}
-.exam-info .date-line{font-size:13px;color:var(--muted);margin:0 0 8px;}
+.exam-info h3{margin:0 0 3px;font-size:16.5px;font-weight:700;font-family:'Fraunces',serif;}
+.exam-info .date-line{font-size:13px;color:var(--muted);margin:0 0 9px;}
 .count-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
-.count-cell{background:rgba(255,255,255,.06);border:1px solid var(--card-border);border-radius:12px;
-  text-align:center;padding:8px 4px;}
+.count-cell{background:var(--paper);border:1px solid var(--line);border-radius:13px;text-align:center;padding:9px 4px;}
 .count-cell b{display:block;font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;}
-.count-cell span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
-.exam-actions{display:flex;gap:8px;margin-top:10px;}
+.count-cell span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700;}
+.exam-actions{display:flex;gap:8px;margin-top:10px;align-items:center;}
+
 /* subjects */
 .subj-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
-.swatch{width:14px;height:14px;border-radius:5px;flex:none;}
-.subj-head h3{margin:0;font-size:15.5px;font-weight:700;flex:1;}
-.pct{font-size:13px;font-weight:700;color:var(--secondary);}
-.pbar{height:9px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden;margin:8px 0 4px;}
-.pbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--primary),var(--accent));
-  transition:width .6s cubic-bezier(.22,1,.36,1);}
-.chapter{display:flex;align-items:center;gap:11px;padding:9px 4px;border-bottom:1px solid rgba(255,255,255,.06);}
+.swatch{width:15px;height:15px;border-radius:6px;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);}
+.subj-head h3{margin:0;font-size:16px;font-weight:700;flex:1;font-family:'Fraunces',serif;}
+.pct{font-size:13px;font-weight:800;color:var(--bronze-deep);}
+.pbar{height:10px;border-radius:99px;background:var(--paper2);overflow:hidden;margin:9px 0 4px;
+  box-shadow:inset 0 1px 3px rgba(96,62,18,.15);}
+.pbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--bronze),var(--clay));
+  transition:width .7s cubic-bezier(.22,1,.36,1);}
+.chapter{display:flex;align-items:center;gap:11px;padding:10px 4px;border-bottom:1px solid var(--line);}
 .chapter:last-child{border-bottom:none;}
-.chapter input[type=checkbox]{width:21px;height:21px;accent-color:var(--accent);flex:none;cursor:pointer;}
+.chapter input[type=checkbox]{width:22px;height:22px;accent-color:var(--bronze);flex:none;cursor:pointer;}
 .chapter label{flex:1;font-size:14px;cursor:pointer;}
 .chapter.done label{text-decoration:line-through;color:var(--muted);}
-.chapter .rev{font-size:11px;font-weight:700;color:var(--amber);border:1px solid rgba(251,191,36,.4);
-  padding:3px 8px;border-radius:99px;white-space:nowrap;}
-.empty{border:1.5px dashed rgba(255,255,255,.2);border-radius:14px;padding:26px 18px;text-align:center;color:var(--muted);}
-.empty svg{width:34px;height:34px;opacity:.55;margin-bottom:8px;}
-.empty p{margin:6px 0 0;font-size:13.5px;line-height:1.55;}
-.empty b{color:var(--text);}
+.chapter .rev{font-size:11px;font-weight:700;color:var(--bronze-deep);border:1px solid var(--gold);
+  background:#FFFBF0;padding:4px 10px;border-radius:99px;white-space:nowrap;}
+.empty{border:1.5px dashed var(--line);border-radius:16px;padding:28px 18px;text-align:center;color:var(--muted);background:rgba(255,255,255,.5);}
+.empty svg{width:36px;height:36px;opacity:.5;margin-bottom:8px;color:var(--bronze);}
+.empty p{margin:6px 0 0;font-size:13.5px;line-height:1.6;}
+.empty b{color:var(--ink);}
+
 /* tasks */
-.task{display:flex;align-items:center;gap:11px;padding:11px 4px;border-bottom:1px solid rgba(255,255,255,.06);}
+.task{display:flex;align-items:center;gap:11px;padding:12px 4px;border-bottom:1px solid var(--line);}
 .task:last-child{border-bottom:none;}
-.task input[type=checkbox]{width:21px;height:21px;accent-color:var(--green);flex:none;cursor:pointer;}
+.task input[type=checkbox]{width:22px;height:22px;accent-color:var(--leaf);flex:none;cursor:pointer;}
 .task .t-main{flex:1;min-width:0;}
 .task .t-main b{display:block;font-size:14px;font-weight:600;}
 .task .t-main span{font-size:12px;color:var(--muted);}
 .task.done .t-main b{text-decoration:line-through;color:var(--muted);}
+
 /* timer */
-.timer-wrap{text-align:center;padding:8px 0 4px;}
-.timer-ring{position:relative;width:230px;height:230px;margin:6px auto 14px;}
+.timer-wrap{text-align:center;padding:6px 0 4px;}
+.timer-stage{position:relative;width:250px;height:250px;margin:8px auto 14px;}
+.timer-stage .halo{position:absolute;inset:-14px;border-radius:50%;
+  background:radial-gradient(circle,rgba(217,164,65,.35) 0%,rgba(217,164,65,0) 65%);
+  animation:breathe 4s ease-in-out infinite;}
+@keyframes breathe{0%,100%{transform:scale(1);opacity:.8;}50%{transform:scale(1.07);opacity:1;}}
+.timer-ring{position:relative;width:250px;height:250px;}
 .timer-ring svg{transform:rotate(-90deg);}
 .timer-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.timer-center b{font-size:44px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;}
-.timer-center span{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em;}
-.mode-tabs{display:inline-flex;background:rgba(255,255,255,.07);border:1px solid var(--card-border);
-  border-radius:999px;padding:4px;margin-bottom:14px;}
+.timer-center b{font-size:47px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;}
+.timer-center span{font-size:11.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.09em;}
+.mode-tabs{display:inline-flex;background:var(--paper2);border:1px solid var(--line);border-radius:999px;padding:4px;margin-bottom:14px;}
 .mode-tabs button{border:none;background:transparent;color:var(--muted);font-family:inherit;font-weight:700;
-  font-size:13px;padding:9px 20px;border-radius:999px;cursor:pointer;transition:all .25s;}
-.mode-tabs button.on{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;
-  box-shadow:0 4px 14px rgba(67,59,255,.4);}
+  font-size:13px;padding:10px 22px;border-radius:999px;cursor:pointer;transition:all .25s;}
+.mode-tabs button.on{background:linear-gradient(135deg,var(--bronze),var(--clay));color:#FFF7E8;
+  box-shadow:0 6px 16px -6px rgba(140,70,10,.6);}
 .timer-controls{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap;}
 .sessions{font-size:13px;color:var(--muted);margin-top:12px;}
-.sessions b{color:var(--green);}
+.sessions b{color:var(--leaf);}
+
 /* stats */
 .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;}
-.stat{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:16px;text-align:center;}
-.stat b{display:block;font-size:27px;font-weight:800;letter-spacing:-.02em;}
-.stat span{font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
-.chart{display:flex;align-items:flex-end;gap:8px;height:130px;padding-top:8px;}
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:17px;padding:17px 12px;text-align:center;
+  position:relative;overflow:hidden;}
+.stat::after{content:"";position:absolute;bottom:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--gold),var(--bronze));opacity:.85;}
+.stat b{display:block;font-size:28px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;}
+.stat span{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+.chart{display:flex;align-items:flex-end;gap:8px;height:132px;padding-top:8px;}
 .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;}
-.bar{width:100%;max-width:44px;border-radius:8px 8px 4px 4px;min-height:6px;
-  background:linear-gradient(180deg,var(--accent),var(--primary));transition:height .8s cubic-bezier(.22,1,.36,1);}
-.bar-col.today .bar{background:linear-gradient(180deg,var(--green),#059669);}
-.bar-col small{font-size:10.5px;color:var(--muted);font-weight:600;}
-.rev-item{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,.06);font-size:14px;}
+.bar{width:100%;max-width:46px;border-radius:9px 9px 5px 5px;min-height:6px;
+  background:linear-gradient(180deg,var(--gold),var(--bronze));transition:height .8s cubic-bezier(.22,1,.36,1);}
+.bar-col.today .bar{background:linear-gradient(180deg,#8a9a4b,var(--leaf));}
+.bar-col small{font-size:10.5px;color:var(--muted);font-weight:700;}
+.rev-item{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--line);font-size:14px;}
 .rev-item:last-child{border:none;}
-.rev-item .due{margin-left:auto;font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;
-  background:rgba(251,191,36,.14);color:var(--amber);border:1px solid rgba(251,191,36,.35);white-space:nowrap;}
+.rev-item .due{margin-left:auto;font-size:11px;font-weight:700;padding:5px 11px;border-radius:99px;
+  background:#FFFBF0;color:var(--bronze-deep);border:1px solid var(--gold);white-space:nowrap;}
+.parents{background:linear-gradient(160deg,#FFF9EC,#FBEFD8);border:1px solid var(--gold-soft);}
+.parents h2{color:var(--bronze-deep);}
+.parents ul{margin:6px 0 0;padding-left:18px;color:#5C4A33;font-size:13.5px;line-height:1.7;}
+.parents ul b{color:var(--ink);}
+
 /* bottom nav */
-nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:20;
-  background:rgba(5,3,21,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border-top:1px solid var(--card-border);
-  display:flex;padding:8px 6px calc(8px + env(safe-area-inset-bottom));}
+nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:30;
+  background:rgba(255,253,247,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:1px solid var(--line);display:flex;padding:10px 8px calc(10px + env(safe-area-inset-bottom));
+  box-shadow:0 -12px 30px -18px rgba(96,62,18,.35);}
 nav.tabs button{flex:1;border:none;background:transparent;color:var(--muted);font-family:inherit;
-  display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10.5px;font-weight:700;
-  padding:8px 4px;border-radius:12px;cursor:pointer;letter-spacing:.02em;}
-nav.tabs button svg{width:22px;height:22px;}
-nav.tabs button.on{color:#fff;}
-nav.tabs button.on svg{filter:drop-shadow(0 0 8px rgba(67,59,255,.8));}
+  display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px;font-weight:700;
+  padding:8px 4px;border-radius:14px;cursor:pointer;letter-spacing:.02em;transition:all .25s;}
+nav.tabs button svg{width:23px;height:23px;}
+nav.tabs button.on{color:var(--bronze-deep);}
+nav.tabs button.on svg{filter:drop-shadow(0 3px 8px rgba(168,91,18,.5));}
+nav.tabs button.on{background:rgba(168,91,18,.1);}
+
 /* onboarding */
-.onb{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:20px;
-  background:rgba(3,2,12,.8);backdrop-filter:blur(8px);}
-.onb-card{max-width:420px;width:100%;background:#0d0a26;border:1px solid var(--card-border);
-  border-radius:24px;padding:30px 26px;text-align:center;}
-.onb-card .art{width:84px;height:84px;margin:0 auto 16px;border-radius:24px;display:grid;place-items:center;
-  background:linear-gradient(135deg,var(--primary),var(--accent));box-shadow:0 10px 30px rgba(67,59,255,.5);}
-.onb-card .art svg{width:44px;height:44px;}
-.onb-card h2{margin:0 0 8px;font-size:21px;font-weight:800;letter-spacing:-.02em;}
-.onb-card p{margin:0 0 20px;color:var(--muted);font-size:14px;line-height:1.6;}
+.onb{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:20px;
+  background:rgba(23,16,10,.55);backdrop-filter:blur(8px);}
+.onb-card{max-width:430px;width:100%;background:var(--card);border:1px solid var(--line);
+  border-radius:26px;overflow:hidden;box-shadow:0 30px 70px -20px rgba(23,16,10,.5);
+  animation:cardIn .5s cubic-bezier(.22,1,.36,1);}
+@keyframes cardIn{from{opacity:0;transform:translateY(26px) scale(.97);}to{opacity:1;transform:none;}}
+.onb-img{height:170px;overflow:hidden;position:relative;}
+.onb-img img{width:100%;height:100%;object-fit:cover;animation:kb 18s ease-in-out infinite alternate;}
+.onb-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(23,16,10,.45));}
+.onb-body{padding:24px 26px 26px;text-align:center;}
+.onb-body h2{margin:0 0 8px;font-family:'Fraunces',serif;font-size:22px;font-weight:700;}
+.onb-body p{margin:0 0 20px;color:var(--muted);font-size:14px;line-height:1.65;}
 .dots{display:flex;gap:7px;justify-content:center;margin-bottom:20px;}
-.dots i{width:8px;height:8px;border-radius:99px;background:rgba(255,255,255,.2);transition:all .3s;}
-.dots i.on{width:26px;background:var(--accent);}
+.dots i{width:8px;height:8px;border-radius:99px;background:var(--line);transition:all .3s;}
+.dots i.on{width:28px;background:linear-gradient(90deg,var(--bronze),var(--clay));}
 .toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + 18px);transform:translateX(-50%) translateY(20px);
-  background:#141031;border:1px solid var(--accent);color:var(--text);font-size:13.5px;font-weight:600;
-  padding:12px 20px;border-radius:14px;opacity:0;pointer-events:none;transition:all .3s;z-index:60;
-  max-width:90vw;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.5);}
+  background:#241A10;color:#FFF7E8;font-size:13.5px;font-weight:600;
+  padding:13px 22px;border-radius:15px;opacity:0;pointer-events:none;transition:all .3s;z-index:70;
+  max-width:90vw;text-align:center;box-shadow:0 14px 34px rgba(23,16,10,.4);border:1px solid rgba(217,164,65,.4);}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-details.how{margin-top:14px;}
-details.how summary{cursor:pointer;font-size:13.5px;font-weight:700;color:var(--secondary);list-style:none;}
+details.how{margin-top:14px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 15px;}
+details.how summary{cursor:pointer;font-size:13.5px;font-weight:700;color:var(--bronze-deep);list-style:none;}
 details.how summary::-webkit-details-marker{display:none;}
 details.how .body{font-size:13px;color:var(--muted);line-height:1.65;margin-top:8px;}
-details.how .body b{color:var(--text);}
+details.how .body b{color:var(--ink);}
+.foot{text-align:center;color:var(--muted);font-size:12px;padding:18px 0 6px;line-height:1.6;}
 @media (min-width:640px){
   .stat-grid{grid-template-columns:repeat(4,1fr);}
-  nav.tabs{max-width:860px;margin:0 auto;left:50%;transform:translateX(-50%);border-radius:20px 20px 0 0;
-    border-left:1px solid var(--card-border);border-right:1px solid var(--card-border);}
+  nav.tabs{max-width:880px;margin:0 auto;left:50%;transform:translateX(-50%);border-radius:22px 22px 0 0;
+    border-left:1px solid var(--line);border-right:1px solid var(--line);}
+  .hero{min-height:340px;}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;}
@@ -210,36 +297,80 @@ details.how .body b{color:var(--text);}
 </style>
 </head>
 <body>
-<div class="bg-fx" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+<!-- CINEMATIC INTRO -->
+<div id="intro" role="presentation" aria-hidden="true">
+  <canvas id="introCv"></canvas>
+  <div class="intro-inner">
+    <div class="intro-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#D9A441" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path class="draw" d="M12 5.5C10 3.8 7.2 3.5 4 4v13.5c3.2-.5 6-.2 8 1.5 2-1.7 4.8-2 8-1.5V4c-3.2-.5-6-.2-8 1.5z"/>
+        <path class="draw" d="M12 5.5V19" style="animation-delay:.7s"/>
+        <path class="draw" d="M8 9.5h2.5M8 12.5h2.5M13.5 9.5H16M13.5 12.5H16" style="animation-delay:.9s"/>
+      </svg>
+    </div>
+    <h1 class="intro-title" id="introTitle">StudySprint</h1>
+    <p class="intro-tag">Your exam command centre</p>
+    <div class="intro-bar"><i id="introBarFill"></i></div>
+  </div>
+  <div class="intro-skip">tap to skip</div>
+</div>
 
 <header class="topbar">
   <div class="logo" aria-hidden="true">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5.5C10 3.8 7.2 3.5 4 4v13.5c3.2-.5 6-.2 8 1.5 2-1.7 4.8-2 8-1.5V4c-3.2-.5-6-.2-8 1.5z"/><path d="M12 5.5V19"/></svg>
   </div>
   <div class="brand"><h1>StudySprint</h1><p id="todayLine">Exam countdown &amp; study planner</p></div>
-  <div class="streak-pill" title="Study streak — days in a row you've studied">
-    <svg viewBox="0 0 24 24" fill="#fbbf24" aria-hidden="true"><path d="M12 2c1 4-4 6-4 11a4.5 4.5 0 0 0 9 0c0-2-1-3.5-2-4.5-.5 1.5-1.5 2-2.5 2C12.5 8 13 4.5 12 2z"/><path d="M12 22a6.5 6.5 0 0 1-6.5-6.5c0-1 .2-2 .6-2.8C4.7 14 4 15.7 4 17.5A8 8 0 0 0 12 22z" opacity=".55"/></svg>
+  <div class="streak-pill" title="Study streak — days in a row with study activity">
+    <svg viewBox="0 0 24 24" fill="#D9A441" aria-hidden="true"><path d="M12 2c1 4-4 6-4 11a4.5 4.5 0 0 0 9 0c0-2-1-3.5-2-4.5-.5 1.5-1.5 2-2.5 2C12.5 8 13 4.5 12 2z"/><path d="M12 22a6.5 6.5 0 0 1-6.5-6.5c0-1 .2-2 .6-2.8C4.7 14 4 15.7 4 17.5A8 8 0 0 0 12 22z" opacity=".55"/></svg>
     <span id="streakNum">0</span>&nbsp;day streak
   </div>
 </header>
+
+<!-- HERO -->
+<section class="hero" aria-label="Welcome">
+  <img class="kb" src="assets/hero.jpg" alt="Warm study desk with notebook, books and lamp in golden light" fetchpriority="high">
+  <div class="hero-txt">
+    <p class="hero-kicker">Study journal</p>
+    <h2 id="heroGreet">Good evening, scholar.</h2>
+    <p id="heroSub">Small steps every day beat last-minute panic.</p>
+    <div class="chips">
+      <div class="chip"><b id="chipStreak">0</b>&nbsp;day streak</div>
+      <div class="chip"><b id="chipChapters">0</b>&nbsp;chapters done</div>
+      <div class="chip"><b id="chipExam">–</b>&nbsp;<span id="chipExamLabel">next exam</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- PILL NAV -->
+<nav class="pillnav" aria-label="Sections">
+  <button data-view="view-exams" class="on">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>Exams</button>
+  <button data-view="view-study">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>Study</button>
+  <button data-view="view-focus">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>Focus</button>
+  <button data-view="view-stats">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 15l4-6 4 3 5-8"/></svg>Stats</button>
+</nav>
 
 <main>
   <!-- EXAMS VIEW -->
   <section class="view active" id="view-exams" aria-label="Exams">
     <div class="card">
       <h2>Your exams</h2>
-      <p class="sub">Add each exam with its date — StudySprint counts down every second and keeps you honest about how much time is left.</p>
+      <p class="sub">Add each exam with its date. StudySprint counts down every second, so the deadline always feels real — in a good way.</p>
       <div id="examList"></div>
       <div id="examEmpty" class="empty" style="display:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
-        <p><b>No exams yet.</b><br>Add your first exam below — e.g. "Class 12 Boards" — and watch the countdown begin.</p>
+        <p><b>No exams yet.</b><br>Add your first exam below — for example "Class 12 Boards" — and watch the countdown begin.</p>
       </div>
       <div id="examFormWrap">
         <label class="f" for="examName">Exam name</label>
         <input type="text" id="examName" placeholder="e.g. Class 12 Board Exams" maxlength="60">
         <label class="f" for="examDate">Exam date</label>
         <input type="date" id="examDate">
-        <p class="helper">Tip: add prelims or unit tests too — smaller deadlines keep the big one less scary.</p>
+        <p class="helper"><b>Tip for parents &amp; students:</b> add small tests too (unit tests, prelims). Small deadlines make the big exam feel less scary.</p>
         <div class="row" style="margin-top:12px"><button class="btn" id="addExamBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
           Add exam</button></div>
@@ -249,25 +380,26 @@ details.how .body b{color:var(--text);}
 
   <!-- STUDY VIEW -->
   <section class="view" id="view-study" aria-label="Study">
+    <div class="banner"><img class="kb" src="assets/notes.jpg" alt="Student writing study notes in warm window light" loading="lazy"><span>Break it down, tick it off.</span></div>
     <div class="card">
       <h2>Subjects &amp; chapters</h2>
-      <p class="sub">Break each subject into chapters. Tick them off as you finish — your syllabus completion grows in Stats.</p>
+      <p class="sub">Split each subject into small chapters. Tick them off as you finish — watching the bar fill is the fun part.</p>
       <div class="row" style="margin-bottom:6px">
         <div style="flex:2;min-width:160px"><input type="text" id="subjName" placeholder="Subject name, e.g. Physics" maxlength="40" aria-label="Subject name"></div>
         <div style="flex:1;min-width:120px;display:flex;gap:8px;align-items:center">
-          <input type="color" id="subjColor" value="#433bff" style="width:46px;height:42px;padding:4px;border-radius:12px;cursor:pointer" title="Pick a colour for this subject" aria-label="Subject colour">
+          <input type="color" id="subjColor" value="#A85B12" style="width:46px;height:44px;padding:4px;border-radius:12px;cursor:pointer;border:1.5px solid var(--line)" title="Pick a colour for this subject" aria-label="Subject colour">
           <button class="btn small" id="addSubjBtn" style="flex:1">Add</button>
         </div>
       </div>
       <div id="subjList" style="margin-top:10px"></div>
       <div id="subjEmpty" class="empty">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
-        <p><b>No subjects yet.</b><br>Add your first subject above, then break it into chapters you can tick off.</p>
+        <p><b>No subjects yet.</b><br>Add your first subject above, then break it into chapters you can tick off one by one.</p>
       </div>
     </div>
     <div class="card">
       <h2>Today's study tasks</h2>
-      <p class="sub">Plan what you'll study today. Completing any task (or a focus session) keeps your streak alive.</p>
+      <p class="sub">Decide tonight or this morning what you'll study today. Finishing any task keeps your streak alive.</p>
       <div id="taskList"></div>
       <div id="taskEmpty" class="empty">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>
@@ -291,20 +423,23 @@ details.how .body b{color:var(--text);}
   <section class="view" id="view-focus" aria-label="Focus timer">
     <div class="card timer-wrap">
       <h2 style="text-align:left">Focus timer</h2>
-      <p class="sub" style="text-align:left">Work in focused bursts with short breaks. Finish a session and it counts toward your streak and weekly minutes.</p>
+      <p class="sub" style="text-align:left">Study in focused bursts with short breaks in between — like interval training for your brain. Each finished session feeds your streak.</p>
       <div class="mode-tabs" role="tablist" aria-label="Timer mode">
         <button id="modeFocus" class="on" role="tab">Focus</button>
         <button id="modeBreak" role="tab">Break</button>
       </div>
-      <div class="timer-ring">
-        <svg width="230" height="230" viewBox="0 0 230 230" aria-hidden="true">
-          <defs><linearGradient id="tGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#2f27ce"/><stop offset="1" stop-color="#433bff"/></linearGradient></defs>
-          <circle cx="115" cy="115" r="104" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="13"/>
-          <circle id="timerArc" cx="115" cy="115" r="104" fill="none" stroke="url(#tGrad)" stroke-width="13"
-            stroke-linecap="round" stroke-dasharray="653.45" stroke-dashoffset="0"/>
-        </svg>
-        <div class="timer-center"><b id="timerTime">25:00</b><span id="timerLabel">ready to focus</span></div>
+      <div class="timer-stage">
+        <div class="halo" aria-hidden="true"></div>
+        <div class="timer-ring">
+          <svg width="250" height="250" viewBox="0 0 250 250" aria-hidden="true">
+            <defs><linearGradient id="tGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#D9A441"/><stop offset=".55" stop-color="#A85B12"/><stop offset="1" stop-color="#9C3A1E"/></linearGradient></defs>
+            <circle cx="125" cy="125" r="112" fill="none" stroke="#F3ECDC" stroke-width="14"/>
+            <circle id="timerArc" cx="125" cy="125" r="112" fill="none" stroke="url(#tGrad)" stroke-width="14"
+              stroke-linecap="round" stroke-dasharray="703.72" stroke-dashoffset="0"/>
+          </svg>
+          <div class="timer-center"><b id="timerTime">25:00</b><span id="timerLabel">ready to focus</span></div>
+        </div>
       </div>
       <div class="timer-controls">
         <button class="btn" id="timerToggle">
@@ -326,32 +461,46 @@ details.how .body b{color:var(--text);}
 
   <!-- STATS VIEW -->
   <section class="view" id="view-stats" aria-label="Stats">
+    <div class="banner"><img class="kb" src="assets/library.jpg" alt="Grand library hall glowing in warm sunlight" loading="lazy"><span>Your progress, at a glance.</span></div>
     <div class="card">
       <h2>Your progress</h2>
-      <p class="sub">Everything is saved on this device — your data never leaves your phone.</p>
+      <p class="sub">Everything is saved on this device only — your study data never leaves your phone or computer.</p>
       <div class="stat-grid">
         <div class="stat"><b id="stDay">0</b><span>day streak</span></div>
         <div class="stat"><b id="stCh">0</b><span>chapters done</span></div>
         <div class="stat"><b id="stHrs">0</b><span>focus hours</span></div>
         <div class="stat"><b id="stSyl">0%</b><span>syllabus done</span></div>
       </div>
-      <h2 style="font-size:15px;margin:4px 0 2px">Minutes studied — last 7 days</h2>
-      <p class="sub">Tasks you complete plus finished focus sessions.</p>
+      <h2 style="font-size:16px;margin:4px 0 2px">Minutes studied — last 7 days</h2>
+      <p class="sub">Completed tasks plus finished focus sessions.</p>
       <div class="chart" id="weekChart" role="img" aria-label="Bar chart of minutes studied per day for the last 7 days"></div>
     </div>
     <div class="card">
       <h2>Revision queue</h2>
-      <p class="sub">Chapters you flagged "needs revision". Clear them before the exam — future you says thanks.</p>
+      <p class="sub">Chapters you marked "needs revision". Clear them before the exam — future you says thanks.</p>
       <div id="revList"></div>
       <div id="revEmpty" class="empty">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
-        <p><b>Revision queue is clear.</b><br>Flag any shaky chapter with "Revise" and it will wait for you here.</p>
+        <p><b>Revision queue is clear.</b><br>Flag any shaky chapter and it will wait for you here.</p>
       </div>
       <details class="how"><summary>How does the streak work?</summary>
-        <div class="body">Your streak grows by <b>one day</b> when you complete at least one study task <b>or</b> finish one focus session on a calendar day. Miss a day and it restarts — small daily wins beat occasional marathons.</div>
+        <div class="body">Your streak grows by <b>one day</b> when you finish at least one study task <b>or</b> complete one focus session on a calendar day. Miss a day and it restarts — small daily wins beat occasional marathons.</div>
       </details>
     </div>
+    <div class="card parents">
+      <h2>A note for parents</h2>
+      <p class="sub" style="color:#7A5A2E">StudySprint is built so the whole family understands it.</p>
+      <ul>
+        <li><b>Day streak</b> = how many days in a row your child studied. Celebrate the streak, not just marks.</li>
+        <li><b>Chapters done</b> = syllabus progress, chapter by chapter. Ask "what did you tick off today?"</li>
+        <li><b>Focus hours</b> = deep, timed study sessions (25 minutes each by default).</li>
+        <li><b>Revision queue</b> = topics your child flagged as shaky — perfect for a quick quiz together.</li>
+        <li>All data stays <b>on this device</b>. Nothing is uploaded anywhere.</li>
+      </ul>
+    </div>
   </section>
+
+  <p class="foot">StudySprint · your data stays on this device<br>Made for students, parents &amp; teachers</p>
 </main>
 
 <nav class="tabs" aria-label="Main navigation">
@@ -367,30 +516,32 @@ details.how .body b{color:var(--text);}
 
 <div class="onb" id="onb" style="display:none" role="dialog" aria-modal="true" aria-label="Welcome tour">
   <div class="onb-card">
-    <div class="art" id="onbArt"></div>
-    <h2 id="onbTitle"></h2>
-    <p id="onbText"></p>
-    <div class="dots" id="onbDots"><i class="on"></i><i></i><i></i></div>
-    <div class="row" style="justify-content:center">
-      <button class="btn ghost" id="onbSkip">Skip</button>
-      <button class="btn" id="onbNext">Next</button>
+    <div class="onb-img"><img id="onbImg" src="assets/hero.jpg" alt=""></div>
+    <div class="onb-body">
+      <h2 id="onbTitle"></h2>
+      <p id="onbText"></p>
+      <div class="dots" id="onbDots"><i class="on"></i><i></i><i></i></div>
+      <div class="row" style="justify-content:center">
+        <button class="btn ghost" id="onbSkip">Skip</button>
+        <button class="btn" id="onbNext">Next</button>
+      </div>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast" role="status"></div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-<linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f27ce"/><stop offset="1" stop-color="#433bff"/></linearGradient>
+<linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D9A441"/><stop offset="1" stop-color="#9C3A1E"/></linearGradient>
 </defs></svg>
 
 <script>
 "use strict";
-/* ============ storage ============ */
+/* ============ storage (same key as v1 — existing data is kept) ============ */
 const LS_KEY = "studysprint_v1";
 const $ = id => document.getElementById(id);
 const uid = () => "id" + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 const todayStr = () => { const d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
-function blankState(){ return { exams:[], subjects:[], tasks:[], sessions:[], days:{}, onboarded:false, focusLen:25, breakLen:5 }; }
+function blankState(){ return { exams:[], subjects:[], tasks:[], sessions:[], days:{}, onboarded:false, introSeen:false, focusLen:25, breakLen:5 }; }
 let S;
 try { S = JSON.parse(localStorage.getItem(LS_KEY)) || blankState(); }
 catch(e){ S = blankState(); }
@@ -398,18 +549,65 @@ S = Object.assign(blankState(), S);
 function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }catch(e){} }
 function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2200); }
 function esc(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* ============ navigation ============ */
-document.querySelectorAll("nav.tabs button").forEach(b=>{
-  b.addEventListener("click", ()=>{
-    document.querySelectorAll("nav.tabs button").forEach(x=>x.classList.remove("on"));
-    b.classList.add("on");
-    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
-    $(b.dataset.view).classList.add("active");
-    window.scrollTo({top:0, behavior:"smooth"});
-    if(b.dataset.view==="view-stats") renderStats();
-  });
-});
+/* ============ intro ============ */
+(function intro(){
+  const ov=$("intro");
+  // staggered letters
+  const t=$("introTitle"), txt=t.textContent; t.textContent="";
+  [...txt].forEach((ch,i)=>{ const s=document.createElement("span"); s.className="ch"; s.style.animationDelay=(0.55+i*0.055)+"s"; s.textContent=ch; t.appendChild(s); });
+  // gold dust particles
+  const cv=$("introCv"), cx=cv.getContext("2d"); let W,H,ps=[];
+  function size(){ W=cv.width=ov.clientWidth; H=cv.height=ov.clientHeight; }
+  size(); addEventListener("resize",size);
+  for(let i=0;i<70;i++) ps.push({x:Math.random(),y:Math.random(),r:Math.random()*2.2+.6,s:Math.random()*.0009+.0003,o:Math.random()*.7+.15,ph:Math.random()*6.28});
+  let raf;
+  (function loop(){
+    cx.clearRect(0,0,W,H);
+    ps.forEach(p=>{
+      p.y-=p.s; if(p.y<-.02){p.y=1.02;p.x=Math.random();}
+      const tw=.6+.4*Math.sin(Date.now()/700+p.ph);
+      cx.beginPath(); cx.arc(p.x*W,p.y*H,p.r,0,6.28);
+      cx.fillStyle="rgba(217,164,65,"+(p.o*tw).toFixed(3)+")"; cx.fill();
+    });
+    if(!ov.classList.contains("gone")) raf=requestAnimationFrame(loop); else cancelAnimationFrame(raf);
+  })();
+  const quick=S.introSeen, DUR=quick?1100:3000;
+  if(!reduceMotion){ $("introBarFill").style.transition="width "+(DUR/1000)+"s linear"; requestAnimationFrame(()=>{ $("introBarFill").style.width="100%"; }); }
+  else { $("introBarFill").style.width="100%"; }
+  let done=false;
+  function finish(){ if(done) return; done=true; ov.classList.add("gone"); S.introSeen=true; save(); setTimeout(()=>ov.remove(),800); }
+  ov.addEventListener("click",finish);
+  setTimeout(finish, reduceMotion? 400 : DUR);
+})();
+
+/* ============ navigation (pill nav + bottom nav stay in sync) ============ */
+function goView(name){
+  document.querySelectorAll(".pillnav button, nav.tabs button").forEach(x=>x.classList.toggle("on",x.dataset.view===name));
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  $(name).classList.add("active");
+  window.scrollTo({top:0, behavior: reduceMotion()? "auto":"smooth"});
+  if(name==="view-stats") renderStats();
+  refreshHero();
+}
+document.querySelectorAll(".pillnav button, nav.tabs button").forEach(b=>b.addEventListener("click",()=>goView(b.dataset.view)));
+
+/* ============ hero ============ */
+function refreshHero(){
+  const h=new Date().getHours();
+  $("heroGreet").textContent = h<12? "Good morning, scholar." : h<17? "Good afternoon, scholar." : "Good evening, scholar.";
+  $("chipStreak").textContent=calcStreak();
+  const chDone=S.subjects.reduce((a,su)=>a+su.chapters.filter(c=>c.done).length,0);
+  $("chipChapters").textContent=chDone;
+  const upcoming=[...S.exams].filter(e=>new Date(e.date+"T00:00:00")>=new Date(todayStr()+"T00:00:00"))
+    .sort((a,b)=>new Date(a.date)-new Date(b.date))[0];
+  if(upcoming){
+    const d=Math.max(0,Math.ceil((new Date(upcoming.date+"T00:00:00")-new Date(todayStr()+"T00:00:00"))/86400000));
+    $("chipExam").textContent=d===0? "today!" : d+"d";
+    $("chipExamLabel").textContent=upcoming.name.length>18? upcoming.name.slice(0,18)+"…":upcoming.name;
+  } else { $("chipExam").textContent="–"; $("chipExamLabel").textContent="next exam"; }
+}
 
 /* ============ exams ============ */
 function fmtDate(ds){ const d=new Date(ds+"T00:00:00"); return d.toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short",year:"numeric"}); }
@@ -427,12 +625,12 @@ function renderExams(){
   const sorted=[...S.exams].sort((a,b)=> new Date(a.date)-new Date(b.date));
   sorted.forEach(ex=>{
     const card=document.createElement("div"); card.className="card exam-card"; card.style.marginBottom="12px";
-    const R=44, C=2*Math.PI*R;
+    const R=46, C=2*Math.PI*R;
     card.innerHTML =
       '<div class="ring-wrap" role="img" aria-label="Countdown ring">'+
-        '<svg width="104" height="104" viewBox="0 0 104 104">'+
-        '<circle class="ring-bg" cx="52" cy="52" r="'+R+'" fill="none" stroke-width="10"/>'+
-        '<circle class="ring-fg" data-ex="'+ex.id+'" cx="52" cy="52" r="'+R+'" fill="none" stroke-width="10" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="0"/></svg>'+
+        '<svg width="108" height="108" viewBox="0 0 108 108">'+
+        '<circle class="ring-bg" cx="54" cy="54" r="'+R+'" fill="none" stroke-width="10"/>'+
+        '<circle class="ring-fg" data-ex="'+ex.id+'" cx="54" cy="54" r="'+R+'" fill="none" stroke-width="10" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="0"/></svg>'+
         '<div class="ring-center"><div><b data-days="'+ex.id+'">–</b><br><span>days</span></div></div></div>'+
       '<div class="exam-info"><h3>'+esc(ex.name)+'</h3><p class="date-line">'+fmtDate(ex.date)+'</p>'+
         '<div class="count-grid">'+
@@ -447,7 +645,7 @@ function renderExams(){
     list.appendChild(card);
   });
   list.querySelectorAll("[data-del-exam]").forEach(b=>b.addEventListener("click",()=>{
-    S.exams = S.exams.filter(e=>e.id!==b.dataset.delExam); save(); renderExams(); toast("Exam deleted.");
+    S.exams = S.exams.filter(e=>e.id!==b.dataset.delExam); save(); renderExams(); refreshHero(); toast("Exam deleted.");
   }));
   tickCountdowns();
 }
@@ -458,9 +656,9 @@ function tickCountdowns(){
     set("d",p.days); set("h",String(p.hrs).padStart(2,"0")); set("m",String(p.mins).padStart(2,"0")); set("s",String(p.secs).padStart(2,"0"));
     const dEl=document.querySelector('[data-days="'+ex.id+'"]'); if(dEl) dEl.textContent=p.days;
     const ring=document.querySelector('[data-ex="'+ex.id+'"]');
-    if(ring){ const C=2*Math.PI*44; const frac=Math.min(1,p.days/365); ring.style.strokeDashoffset=(C*(1-frac)).toFixed(1); }
+    if(ring){ const C=2*Math.PI*46; const frac=Math.min(1,p.days/365); ring.style.strokeDashoffset=(C*(1-frac)).toFixed(1); }
     const msg=document.querySelector('[data-exmsg="'+ex.id+'"]');
-    if(msg) msg.textContent = p.past ? "This date has passed — all the best, it went well!" :
+    if(msg) msg.textContent = p.past ? "This date has passed — hope it went well!" :
       p.days===0 ? "It's today. Deep breath — you've got this." :
       p.days===1 ? "Tomorrow! Light revision only." : p.days+" days of prep left. Steady wins.";
   });
@@ -473,7 +671,7 @@ $("addExamBtn").addEventListener("click",()=>{
   if(new Date(date+"T00:00:00") < new Date(todayStr()+"T00:00:00")){ toast("That date is in the past — pick a future date."); return; }
   S.exams.push({id:uid(),name,date}); save();
   $("examName").value=""; $("examDate").value="";
-  renderExams(); toast("Exam added — countdown started.");
+  renderExams(); refreshHero(); toast("Exam added — countdown started.");
   animateIn($("examList").lastElementChild);
 });
 
@@ -491,8 +689,8 @@ function renderSubjects(){
         '<input type="checkbox" data-ch="'+ch.id+'" data-su="'+su.id+'" '+(ch.done?"checked":"")+' aria-label="Mark chapter '+esc(ch.name)+' done">'+
         '<label data-chlabel="'+ch.id+'">'+esc(ch.name)+'</label>'+
         (ch.revision && !ch.done ? '<span class="rev">Needs revision</span>' : "")+
-        '<button class="icon-btn" data-rev="'+ch.id+'" data-su="'+su.id+'" title="'+(ch.revision?"Remove from revision queue":"Flag for revision")+'" aria-label="Toggle revision flag">'+
-          '<svg viewBox="0 0 24 24" fill="'+(ch.revision?"#fbbf24":"none")+'" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></button>'+
+        '<button class="icon-btn gold" data-rev="'+ch.id+'" data-su="'+su.id+'" title="'+(ch.revision?"Remove from revision queue":"Flag for revision")+'" aria-label="Toggle revision flag">'+
+          '<svg viewBox="0 0 24 24" fill="'+(ch.revision?"#A85B12":"none")+'" stroke="#A85B12" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></button>'+
         '<button class="icon-btn danger" data-delch="'+ch.id+'" data-su="'+su.id+'" title="Delete chapter" aria-label="Delete chapter '+esc(ch.name)+'">'+
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'+
       '</div>';
@@ -509,7 +707,6 @@ function renderSubjects(){
       '<button class="btn small" data-addch="'+su.id+'">Add chapter</button></div>';
     list.appendChild(card);
   });
-  // wire
   list.querySelectorAll("[data-addch]").forEach(b=>b.addEventListener("click",()=>{
     const su=S.subjects.find(x=>x.id===b.dataset.addch); const inp=list.querySelector('[data-newch="'+su.id+'"]');
     const name=inp.value.trim(); if(!name){ toast("Type a chapter name first."); inp.focus(); return; }
@@ -521,7 +718,7 @@ function renderSubjects(){
   list.querySelectorAll("[data-ch]").forEach(cb=>cb.addEventListener("change",()=>{
     const su=S.subjects.find(x=>x.id===cb.dataset.su); const ch=su.chapters.find(c=>c.id===cb.dataset.ch);
     ch.done=cb.checked; if(ch.done) ch.revision=false;
-    save(); renderSubjects(); markDayActive(); toast(ch.done? "Chapter done — nice." : "Marked not done.");
+    save(); renderSubjects(); markDayActive(); refreshHero(); toast(ch.done? "Chapter done — nice." : "Marked not done.");
   }));
   list.querySelectorAll("[data-rev]").forEach(b=>b.addEventListener("click",()=>{
     const su=S.subjects.find(x=>x.id===b.dataset.su); const ch=su.chapters.find(c=>c.id===b.dataset.rev);
@@ -529,12 +726,12 @@ function renderSubjects(){
   }));
   list.querySelectorAll("[data-delch]").forEach(b=>b.addEventListener("click",()=>{
     const su=S.subjects.find(x=>x.id===b.dataset.su);
-    su.chapters=su.chapters.filter(c=>c.id!==b.dataset.delch); save(); renderSubjects(); toast("Chapter deleted.");
+    su.chapters=su.chapters.filter(c=>c.id!==b.dataset.delch); save(); renderSubjects(); refreshHero(); toast("Chapter deleted.");
   }));
   list.querySelectorAll("[data-delsu]").forEach(b=>b.addEventListener("click",()=>{
     S.subjects=S.subjects.filter(x=>x.id!==b.dataset.delsu);
     S.tasks=S.tasks.filter(t=>t.subjectId!==b.dataset.delsu);
-    save(); renderSubjects(); renderTasks(); renderTaskSubjOptions(); toast("Subject deleted.");
+    save(); renderSubjects(); renderTasks(); renderTaskSubjOptions(); refreshHero(); toast("Subject deleted.");
   }));
 }
 $("addSubjBtn").addEventListener("click",()=>{
@@ -565,7 +762,7 @@ function renderTasks(){
   });
   list.querySelectorAll("[data-task]").forEach(cb=>cb.addEventListener("change",()=>{
     const t=S.tasks.find(x=>x.id===cb.dataset.task); t.done=cb.checked; save(); renderTasks();
-    if(t.done){ markDayActive(); toast("Task done — streak kept alive."); }
+    if(t.done){ markDayActive(); refreshHero(); toast("Task done — streak kept alive."); }
   }));
   list.querySelectorAll("[data-deltask]").forEach(b=>b.addEventListener("click",()=>{
     S.tasks=S.tasks.filter(x=>x.id!==b.dataset.deltask); save(); renderTasks(); toast("Task deleted.");
@@ -587,7 +784,7 @@ function markDayActive(){
 }
 function calcStreak(){
   let n=0; const d=new Date();
-  if(!S.days[todayStr()]) d.setDate(d.getDate()-1); // streak counts if active today or yesterday
+  if(!S.days[todayStr()]) d.setDate(d.getDate()-1);
   while(true){ const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
     if(S.days[k]){ n++; d.setDate(d.getDate()-1); } else break; }
   return n;
@@ -596,7 +793,7 @@ function updateStreak(){ const n=calcStreak(); $("streakNum").textContent=n; con
 
 /* ============ pomodoro ============ */
 const T={mode:"focus",total:25*60,left:25*60,running:false,h:null};
-const ARC=653.45;
+const ARC=703.72;
 function fmtT(s){ return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); }
 function timerPaint(){
   $("timerTime").textContent=fmtT(T.left);
@@ -621,7 +818,7 @@ $("timerToggle").addEventListener("click",()=>{
       clearInterval(T.h); T.running=false;
       if(T.mode==="focus"){
         S.sessions.push({date:todayStr(),minutes:S.focusLen}); markDayActive(); save();
-        $("sessCount").textContent=S.sessions.length;
+        $("sessCount").textContent=S.sessions.length; refreshHero();
         toast("Focus session complete — "+S.focusLen+" minutes logged. Take a break!");
         setMode("break");
       } else { toast("Break over — ready for another round?"); setMode("focus"); }
@@ -648,7 +845,6 @@ function renderStats(){
   const hrs=(S.sessions.reduce((a,s)=>a+s.minutes,0)/60);
   $("stHrs").textContent=hrs>=10? Math.round(hrs) : hrs.toFixed(1).replace(/\.0$/,"");
   $("stSyl").textContent=(chTot? Math.round(100*chDone/chTot):0)+"%";
-  // weekly chart
   const chart=$("weekChart"); chart.innerHTML="";
   const vals=[];
   for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i);
@@ -660,7 +856,6 @@ function renderStats(){
     col.innerHTML='<div class="bar" style="height:'+Math.max(4,Math.round(100*v.min/max))+'%" title="'+v.min+' min"></div><small>'+v.label+'</small>';
     chart.appendChild(col);
   });
-  // revision queue
   const rl=$("revList"); rl.innerHTML=""; let n=0;
   S.subjects.forEach(su=>su.chapters.forEach(ch=>{
     if(ch.revision && !ch.done){ n++;
@@ -674,23 +869,20 @@ function renderStats(){
   $("revEmpty").style.display=n?"none":"block";
   rl.querySelectorAll("[data-donerev]").forEach(b=>b.addEventListener("click",()=>{
     const su=S.subjects.find(x=>x.id===b.dataset.su); const ch=su.chapters.find(c=>c.id===b.dataset.donerev);
-    ch.done=true; ch.revision=false; save(); renderStats(); markDayActive(); toast("Revised and done — well played.");
+    ch.done=true; ch.revision=false; save(); renderStats(); markDayActive(); refreshHero(); toast("Revised and done — well played.");
   }));
 }
 
 /* ============ onboarding ============ */
 const ONB=[
- {t:"Welcome to StudySprint",x:"Your exam command centre: countdowns, chapter tracking, daily plans and a focus timer — all in one place, all saved on your device.",
-  art:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg>'},
- {t:"1. Add your exams",x:"Type the exam name and pick its date. StudySprint counts down every second so the deadline always feels real.",
-  art:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>'},
- {t:"2. Break it into chapters",x:"Add subjects, split them into chapters, tick them off. Your syllabus bar and streak grow with every small win.",
-  art:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>'}
+ {t:"Welcome to StudySprint",x:"Your exam command centre: countdowns, chapter tracking, daily plans and a focus timer — all in one place, all saved on your device.",img:"assets/hero.jpg"},
+ {t:"1 · Add your exams",x:"Type the exam name and pick its date. StudySprint counts down every second, so the deadline always feels real.",img:"assets/notes.jpg"},
+ {t:"2 · Break it into chapters",x:"Add subjects, split them into chapters, tick them off. Your syllabus bar and streak grow with every small win.",img:"assets/library.jpg"}
 ];
 let onbI=0;
 function showOnb(i){
   onbI=i; $("onb").style.display="grid";
-  $("onbTitle").textContent=ONB[i].t; $("onbText").textContent=ONB[i].x; $("onbArt").innerHTML=ONB[i].art;
+  $("onbTitle").textContent=ONB[i].t; $("onbText").textContent=ONB[i].x; $("onbImg").src=ONB[i].img;
   document.querySelectorAll("#onbDots i").forEach((d,k)=>d.classList.toggle("on",k===i));
   $("onbNext").textContent = i===ONB.length-1? "Start studying":"Next";
 }
@@ -700,16 +892,8 @@ $("onbSkip").addEventListener("click",hideOnb);
 
 /* ============ animation helpers ============ */
 function animateIn(el){
-  if(!el || !window.Motion || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if(!el || !window.Motion || reduceMotion()) return;
   try{ Motion.animate(el,{opacity:[0,1],transform:["translateY(14px)","translateY(0)"]},{duration:.45,easing:"cubic-bezier(.22,1,.36,1)"}); }catch(e){}
-}
-function countUp(el,to,suffix){
-  suffix=suffix||"";
-  if(matchMedia("(prefers-reduced-motion: reduce)").matches || !window.Motion){ el.textContent=to+suffix; return; }
-  try{
-    const o={v:0};
-    Motion.animate(v=>{ o.v=v; el.textContent=Math.round(o.v)+suffix; },{duration:.9,easing:"ease-out"});
-  }catch(e){ el.textContent=to+suffix; }
 }
 
 /* ============ init ============ */
@@ -718,14 +902,14 @@ function countUp(el,to,suffix){
   $("todayLine").textContent=d.toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long"});
   $("focusLen").value=S.focusLen; $("breakLen").value=S.breakLen;
   $("sessCount").textContent=S.sessions.length;
-  renderExams(); renderSubjects(); renderTaskSubjOptions(); renderTasks(); updateStreak();
+  renderExams(); renderSubjects(); renderTaskSubjOptions(); renderTasks(); updateStreak(); refreshHero();
   setMode("focus");
   document.querySelectorAll("#view-exams .card, #view-study .card").forEach((el,i)=>{
-    if(window.Motion && !matchMedia("(prefers-reduced-motion: reduce)").matches){
-      try{ Motion.animate(el,{opacity:[0,1],transform:["translateY(16px)","translateY(0)"]},{duration:.5,delay:i*.07,easing:"cubic-bezier(.22,1,.36,1)"}); }catch(e){}
+    if(window.Motion && !reduceMotion()){
+      try{ Motion.animate(el,{opacity:[0,1],transform:["translateY(16px)","translateY(0)"]},{duration:.5,delay:.1+i*.07,easing:"cubic-bezier(.22,1,.36,1)"}); }catch(e){}
     }
   });
-  if(!S.onboarded) showOnb(0);
+  if(!S.onboarded) setTimeout(()=>showOnb(0), 3400);
 })();
 </script>
 </body>
