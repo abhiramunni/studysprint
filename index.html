@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>StudySprint — Exam Countdown & Study Planner</title>
+<meta name="description" content="StudySprint: count down to your board exams, track subjects and chapters, plan daily study tasks, and focus with a Pomodoro timer.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@motionone/dom@10.16.2/dist/motion-one.umd.min.js"></script>
+<style>
+:root{
+  --bg:#050315; --text:#fbfbfe; --muted:#a7a3c7;
+  --primary:#2f27ce; --secondary:#dedcff; --accent:#433bff;
+  --card:rgba(255,255,255,.055); --card-border:rgba(255,255,255,.12);
+  --green:#34d399; --amber:#fbbf24; --rose:#fb7185; --sky:#38bdf8;
+  --radius:20px; --nav-h:68px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0; font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--text);
+  min-height:100vh; overflow-x:hidden; padding-bottom:calc(var(--nav-h) + 24px);
+}
+/* animated background */
+.bg-fx{position:fixed; inset:0; z-index:-2; overflow:hidden; background:radial-gradient(1200px 800px at 80% -10%, #1b1660 0%, var(--bg) 55%) , var(--bg);}
+.blob{position:absolute; border-radius:50%; filter:blur(90px); opacity:.5; animation:drift 18s ease-in-out infinite alternate;}
+.blob.b1{width:420px;height:420px;background:#2f27ce;top:-120px;left:-120px;}
+.blob.b2{width:360px;height:360px;background:#433bff;bottom:-100px;right:-100px;animation-delay:-6s;}
+.blob.b3{width:280px;height:280px;background:#7c3aed;top:40%;left:60%;opacity:.3;animation-delay:-12s;}
+@keyframes drift{from{transform:translate(0,0) scale(1);}to{transform:translate(60px,40px) scale(1.15);}}
+header.topbar{
+  position:sticky; top:0; z-index:20;
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  background:rgba(5,3,21,.72); border-bottom:1px solid var(--card-border);
+  padding:14px 18px; display:flex; align-items:center; gap:12px;
+}
+.logo{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  box-shadow:0 6px 20px rgba(67,59,255,.45); flex:none;}
+.logo svg{width:24px;height:24px;}
+.brand h1{margin:0;font-size:19px;font-weight:800;letter-spacing:-.02em;}
+.brand p{margin:2px 0 0;font-size:12px;color:var(--muted);}
+.streak-pill{margin-left:auto;display:flex;align-items:center;gap:7px;background:var(--card);
+  border:1px solid var(--card-border);border-radius:999px;padding:8px 14px;font-weight:700;font-size:14px;}
+.streak-pill svg{width:18px;height:18px;}
+main{max-width:860px;margin:0 auto;padding:18px 16px 8px;}
+.view{display:none;}
+.view.active{display:block;animation:fadeUp .35s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+.card{
+  background:var(--card); border:1px solid var(--card-border); border-radius:var(--radius);
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  padding:18px; margin-bottom:16px; position:relative; overflow:hidden;
+}
+.card::before{content:"";position:absolute;top:0;left:16px;right:16px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);}
+.card h2{margin:0 0 4px;font-size:17px;font-weight:700;letter-spacing:-.01em;}
+.card .sub{margin:0 0 12px;font-size:13px;color:var(--muted);line-height:1.5;}
+.helper{font-size:12px;color:var(--muted);margin:6px 0 0;line-height:1.5;}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+input[type=text],input[type=date],input[type=number],select{
+  background:rgba(255,255,255,.07);border:1px solid var(--card-border);color:var(--text);
+  border-radius:12px;padding:11px 13px;font-size:14px;font-family:inherit;width:100%;outline:none;
+  transition:border-color .2s, box-shadow .2s;
+}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(67,59,255,.25);}
+input[type=date]{color-scheme:dark;}
+label.f{display:block;font-size:12.5px;font-weight:600;color:var(--secondary);margin:10px 0 5px;}
+.btn{
+  appearance:none;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:14px;
+  border-radius:13px;padding:12px 18px;color:#fff;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  box-shadow:0 6px 18px rgba(67,59,255,.4);
+  display:inline-flex;align-items:center;gap:8px;justify-content:center;
+  transition:transform .15s ease, box-shadow .2s;
+}
+.btn:active{transform:scale(.96);}
+.btn svg{width:17px;height:17px;}
+.btn.ghost{background:rgba(255,255,255,.08);box-shadow:none;border:1px solid var(--card-border);}
+.btn.danger{background:linear-gradient(135deg,#be123c,#fb7185);box-shadow:0 6px 18px rgba(251,113,133,.3);}
+.btn.small{padding:8px 13px;font-size:13px;border-radius:10px;}
+.icon-btn{background:rgba(255,255,255,.07);border:1px solid var(--card-border);color:var(--text);
+  width:36px;height:36px;border-radius:11px;display:grid;place-items:center;cursor:pointer;flex:none;
+  transition:transform .15s, background .2s;}
+.icon-btn:active{transform:scale(.9);}
+.icon-btn svg{width:17px;height:17px;}
+.icon-btn.danger{color:var(--rose);}
+/* countdown */
+.exam-card{display:flex;gap:16px;align-items:center;}
+.ring-wrap{position:relative;width:104px;height:104px;flex:none;}
+.ring-wrap svg{transform:rotate(-90deg);}
+.ring-bg{stroke:rgba(255,255,255,.1);}
+.ring-fg{stroke:url(#ringGrad);stroke-linecap:round;transition:stroke-dashoffset 1s ease;}
+.ring-center{position:absolute;inset:0;display:grid;place-items:center;text-align:center;}
+.ring-center b{font-size:26px;font-weight:800;letter-spacing:-.02em;}
+.ring-center span{font-size:10.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
+.exam-info{flex:1;min-width:0;}
+.exam-info h3{margin:0 0 3px;font-size:16.5px;font-weight:700;}
+.exam-info .date-line{font-size:13px;color:var(--muted);margin:0 0 8px;}
+.count-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.count-cell{background:rgba(255,255,255,.06);border:1px solid var(--card-border);border-radius:12px;
+  text-align:center;padding:8px 4px;}
+.count-cell b{display:block;font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;}
+.count-cell span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+.exam-actions{display:flex;gap:8px;margin-top:10px;}
+/* subjects */
+.subj-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.swatch{width:14px;height:14px;border-radius:5px;flex:none;}
+.subj-head h3{margin:0;font-size:15.5px;font-weight:700;flex:1;}
+.pct{font-size:13px;font-weight:700;color:var(--secondary);}
+.pbar{height:9px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden;margin:8px 0 4px;}
+.pbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--primary),var(--accent));
+  transition:width .6s cubic-bezier(.22,1,.36,1);}
+.chapter{display:flex;align-items:center;gap:11px;padding:9px 4px;border-bottom:1px solid rgba(255,255,255,.06);}
+.chapter:last-child{border-bottom:none;}
+.chapter input[type=checkbox]{width:21px;height:21px;accent-color:var(--accent);flex:none;cursor:pointer;}
+.chapter label{flex:1;font-size:14px;cursor:pointer;}
+.chapter.done label{text-decoration:line-through;color:var(--muted);}
+.chapter .rev{font-size:11px;font-weight:700;color:var(--amber);border:1px solid rgba(251,191,36,.4);
+  padding:3px 8px;border-radius:99px;white-space:nowrap;}
+.empty{border:1.5px dashed rgba(255,255,255,.2);border-radius:14px;padding:26px 18px;text-align:center;color:var(--muted);}
+.empty svg{width:34px;height:34px;opacity:.55;margin-bottom:8px;}
+.empty p{margin:6px 0 0;font-size:13.5px;line-height:1.55;}
+.empty b{color:var(--text);}
+/* tasks */
+.task{display:flex;align-items:center;gap:11px;padding:11px 4px;border-bottom:1px solid rgba(255,255,255,.06);}
+.task:last-child{border-bottom:none;}
+.task input[type=checkbox]{width:21px;height:21px;accent-color:var(--green);flex:none;cursor:pointer;}
+.task .t-main{flex:1;min-width:0;}
+.task .t-main b{display:block;font-size:14px;font-weight:600;}
+.task .t-main span{font-size:12px;color:var(--muted);}
+.task.done .t-main b{text-decoration:line-through;color:var(--muted);}
+/* timer */
+.timer-wrap{text-align:center;padding:8px 0 4px;}
+.timer-ring{position:relative;width:230px;height:230px;margin:6px auto 14px;}
+.timer-ring svg{transform:rotate(-90deg);}
+.timer-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.timer-center b{font-size:44px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;}
+.timer-center span{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em;}
+.mode-tabs{display:inline-flex;background:rgba(255,255,255,.07);border:1px solid var(--card-border);
+  border-radius:999px;padding:4px;margin-bottom:14px;}
+.mode-tabs button{border:none;background:transparent;color:var(--muted);font-family:inherit;font-weight:700;
+  font-size:13px;padding:9px 20px;border-radius:999px;cursor:pointer;transition:all .25s;}
+.mode-tabs button.on{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;
+  box-shadow:0 4px 14px rgba(67,59,255,.4);}
+.timer-controls{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap;}
+.sessions{font-size:13px;color:var(--muted);margin-top:12px;}
+.sessions b{color:var(--green);}
+/* stats */
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;}
+.stat{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:16px;text-align:center;}
+.stat b{display:block;font-size:27px;font-weight:800;letter-spacing:-.02em;}
+.stat span{font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
+.chart{display:flex;align-items:flex-end;gap:8px;height:130px;padding-top:8px;}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;}
+.bar{width:100%;max-width:44px;border-radius:8px 8px 4px 4px;min-height:6px;
+  background:linear-gradient(180deg,var(--accent),var(--primary));transition:height .8s cubic-bezier(.22,1,.36,1);}
+.bar-col.today .bar{background:linear-gradient(180deg,var(--green),#059669);}
+.bar-col small{font-size:10.5px;color:var(--muted);font-weight:600;}
+.rev-item{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,.06);font-size:14px;}
+.rev-item:last-child{border:none;}
+.rev-item .due{margin-left:auto;font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;
+  background:rgba(251,191,36,.14);color:var(--amber);border:1px solid rgba(251,191,36,.35);white-space:nowrap;}
+/* bottom nav */
+nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:20;
+  background:rgba(5,3,21,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:1px solid var(--card-border);
+  display:flex;padding:8px 6px calc(8px + env(safe-area-inset-bottom));}
+nav.tabs button{flex:1;border:none;background:transparent;color:var(--muted);font-family:inherit;
+  display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10.5px;font-weight:700;
+  padding:8px 4px;border-radius:12px;cursor:pointer;letter-spacing:.02em;}
+nav.tabs button svg{width:22px;height:22px;}
+nav.tabs button.on{color:#fff;}
+nav.tabs button.on svg{filter:drop-shadow(0 0 8px rgba(67,59,255,.8));}
+/* onboarding */
+.onb{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:20px;
+  background:rgba(3,2,12,.8);backdrop-filter:blur(8px);}
+.onb-card{max-width:420px;width:100%;background:#0d0a26;border:1px solid var(--card-border);
+  border-radius:24px;padding:30px 26px;text-align:center;}
+.onb-card .art{width:84px;height:84px;margin:0 auto 16px;border-radius:24px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--primary),var(--accent));box-shadow:0 10px 30px rgba(67,59,255,.5);}
+.onb-card .art svg{width:44px;height:44px;}
+.onb-card h2{margin:0 0 8px;font-size:21px;font-weight:800;letter-spacing:-.02em;}
+.onb-card p{margin:0 0 20px;color:var(--muted);font-size:14px;line-height:1.6;}
+.dots{display:flex;gap:7px;justify-content:center;margin-bottom:20px;}
+.dots i{width:8px;height:8px;border-radius:99px;background:rgba(255,255,255,.2);transition:all .3s;}
+.dots i.on{width:26px;background:var(--accent);}
+.toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + 18px);transform:translateX(-50%) translateY(20px);
+  background:#141031;border:1px solid var(--accent);color:var(--text);font-size:13.5px;font-weight:600;
+  padding:12px 20px;border-radius:14px;opacity:0;pointer-events:none;transition:all .3s;z-index:60;
+  max-width:90vw;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.5);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+details.how{margin-top:14px;}
+details.how summary{cursor:pointer;font-size:13.5px;font-weight:700;color:var(--secondary);list-style:none;}
+details.how summary::-webkit-details-marker{display:none;}
+details.how .body{font-size:13px;color:var(--muted);line-height:1.65;margin-top:8px;}
+details.how .body b{color:var(--text);}
+@media (min-width:640px){
+  .stat-grid{grid-template-columns:repeat(4,1fr);}
+  nav.tabs{max-width:860px;margin:0 auto;left:50%;transform:translateX(-50%);border-radius:20px 20px 0 0;
+    border-left:1px solid var(--card-border);border-right:1px solid var(--card-border);}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;}
+  html{scroll-behavior:auto;}
+}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+</style>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+<header class="topbar">
+  <div class="logo" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg>
+  </div>
+  <div class="brand"><h1>StudySprint</h1><p id="todayLine">Exam countdown &amp; study planner</p></div>
+  <div class="streak-pill" title="Study streak — days in a row you've studied">
+    <svg viewBox="0 0 24 24" fill="#fbbf24" aria-hidden="true"><path d="M12 2c1 4-4 6-4 11a4.5 4.5 0 0 0 9 0c0-2-1-3.5-2-4.5-.5 1.5-1.5 2-2.5 2C12.5 8 13 4.5 12 2z"/><path d="M12 22a6.5 6.5 0 0 1-6.5-6.5c0-1 .2-2 .6-2.8C4.7 14 4 15.7 4 17.5A8 8 0 0 0 12 22z" opacity=".55"/></svg>
+    <span id="streakNum">0</span>&nbsp;day streak
+  </div>
+</header>
+
+<main>
+  <!-- EXAMS VIEW -->
+  <section class="view active" id="view-exams" aria-label="Exams">
+    <div class="card">
+      <h2>Your exams</h2>
+      <p class="sub">Add each exam with its date — StudySprint counts down every second and keeps you honest about how much time is left.</p>
+      <div id="examList"></div>
+      <div id="examEmpty" class="empty" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+        <p><b>No exams yet.</b><br>Add your first exam below — e.g. "Class 12 Boards" — and watch the countdown begin.</p>
+      </div>
+      <div id="examFormWrap">
+        <label class="f" for="examName">Exam name</label>
+        <input type="text" id="examName" placeholder="e.g. Class 12 Board Exams" maxlength="60">
+        <label class="f" for="examDate">Exam date</label>
+        <input type="date" id="examDate">
+        <p class="helper">Tip: add prelims or unit tests too — smaller deadlines keep the big one less scary.</p>
+        <div class="row" style="margin-top:12px"><button class="btn" id="addExamBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Add exam</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STUDY VIEW -->
+  <section class="view" id="view-study" aria-label="Study">
+    <div class="card">
+      <h2>Subjects &amp; chapters</h2>
+      <p class="sub">Break each subject into chapters. Tick them off as you finish — your syllabus completion grows in Stats.</p>
+      <div class="row" style="margin-bottom:6px">
+        <div style="flex:2;min-width:160px"><input type="text" id="subjName" placeholder="Subject name, e.g. Physics" maxlength="40" aria-label="Subject name"></div>
+        <div style="flex:1;min-width:120px;display:flex;gap:8px;align-items:center">
+          <input type="color" id="subjColor" value="#433bff" style="width:46px;height:42px;padding:4px;border-radius:12px;cursor:pointer" title="Pick a colour for this subject" aria-label="Subject colour">
+          <button class="btn small" id="addSubjBtn" style="flex:1">Add</button>
+        </div>
+      </div>
+      <div id="subjList" style="margin-top:10px"></div>
+      <div id="subjEmpty" class="empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
+        <p><b>No subjects yet.</b><br>Add your first subject above, then break it into chapters you can tick off.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Today's study tasks</h2>
+      <p class="sub">Plan what you'll study today. Completing any task (or a focus session) keeps your streak alive.</p>
+      <div id="taskList"></div>
+      <div id="taskEmpty" class="empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>
+        <p><b>Nothing planned today.</b><br>Add a task — "Revise Thermodynamics, 45 min" — and check it off when done.</p>
+      </div>
+      <label class="f" for="taskTopic">What will you study?</label>
+      <input type="text" id="taskTopic" placeholder="e.g. Revise Thermodynamics" maxlength="80">
+      <div class="row" style="margin-top:10px">
+        <div style="flex:1;min-width:120px"><label class="f" for="taskSubj" style="margin-top:0">Subject</label>
+          <select id="taskSubj"></select></div>
+        <div style="width:110px"><label class="f" for="taskMin" style="margin-top:0">Minutes</label>
+          <input type="number" id="taskMin" value="45" min="5" max="480" step="5"></div>
+      </div>
+      <div class="row" style="margin-top:12px"><button class="btn" id="addTaskBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Add task</button></div>
+    </div>
+  </section>
+
+  <!-- FOCUS VIEW -->
+  <section class="view" id="view-focus" aria-label="Focus timer">
+    <div class="card timer-wrap">
+      <h2 style="text-align:left">Focus timer</h2>
+      <p class="sub" style="text-align:left">Work in focused bursts with short breaks. Finish a session and it counts toward your streak and weekly minutes.</p>
+      <div class="mode-tabs" role="tablist" aria-label="Timer mode">
+        <button id="modeFocus" class="on" role="tab">Focus</button>
+        <button id="modeBreak" role="tab">Break</button>
+      </div>
+      <div class="timer-ring">
+        <svg width="230" height="230" viewBox="0 0 230 230" aria-hidden="true">
+          <defs><linearGradient id="tGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#2f27ce"/><stop offset="1" stop-color="#433bff"/></linearGradient></defs>
+          <circle cx="115" cy="115" r="104" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="13"/>
+          <circle id="timerArc" cx="115" cy="115" r="104" fill="none" stroke="url(#tGrad)" stroke-width="13"
+            stroke-linecap="round" stroke-dasharray="653.45" stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-center"><b id="timerTime">25:00</b><span id="timerLabel">ready to focus</span></div>
+      </div>
+      <div class="timer-controls">
+        <button class="btn" id="timerToggle">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          <span id="timerToggleTxt">Start</span></button>
+        <button class="btn ghost" id="timerReset">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+          Reset</button>
+      </div>
+      <div class="row" style="justify-content:center;margin-top:14px">
+        <div style="width:130px"><label class="f" for="focusLen">Focus (min)</label>
+          <input type="number" id="focusLen" value="25" min="5" max="120" step="5" title="Length of one focus session"></div>
+        <div style="width:130px"><label class="f" for="breakLen">Break (min)</label>
+          <input type="number" id="breakLen" value="5" min="1" max="60" step="1" title="Length of one break"></div>
+      </div>
+      <p class="sessions">Focus sessions completed: <b id="sessCount">0</b></p>
+    </div>
+  </section>
+
+  <!-- STATS VIEW -->
+  <section class="view" id="view-stats" aria-label="Stats">
+    <div class="card">
+      <h2>Your progress</h2>
+      <p class="sub">Everything is saved on this device — your data never leaves your phone.</p>
+      <div class="stat-grid">
+        <div class="stat"><b id="stDay">0</b><span>day streak</span></div>
+        <div class="stat"><b id="stCh">0</b><span>chapters done</span></div>
+        <div class="stat"><b id="stHrs">0</b><span>focus hours</span></div>
+        <div class="stat"><b id="stSyl">0%</b><span>syllabus done</span></div>
+      </div>
+      <h2 style="font-size:15px;margin:4px 0 2px">Minutes studied — last 7 days</h2>
+      <p class="sub">Tasks you complete plus finished focus sessions.</p>
+      <div class="chart" id="weekChart" role="img" aria-label="Bar chart of minutes studied per day for the last 7 days"></div>
+    </div>
+    <div class="card">
+      <h2>Revision queue</h2>
+      <p class="sub">Chapters you flagged "needs revision". Clear them before the exam — future you says thanks.</p>
+      <div id="revList"></div>
+      <div id="revEmpty" class="empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+        <p><b>Revision queue is clear.</b><br>Flag any shaky chapter with "Revise" and it will wait for you here.</p>
+      </div>
+      <details class="how"><summary>How does the streak work?</summary>
+        <div class="body">Your streak grows by <b>one day</b> when you complete at least one study task <b>or</b> finish one focus session on a calendar day. Miss a day and it restarts — small daily wins beat occasional marathons.</div>
+      </details>
+    </div>
+  </section>
+</main>
+
+<nav class="tabs" aria-label="Main navigation">
+  <button data-view="view-exams" class="on" aria-label="Exams">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>Exams</button>
+  <button data-view="view-study" aria-label="Study">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>Study</button>
+  <button data-view="view-focus" aria-label="Focus timer">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>Focus</button>
+  <button data-view="view-stats" aria-label="Stats">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 15l4-6 4 3 5-8"/></svg>Stats</button>
+</nav>
+
+<div class="onb" id="onb" style="display:none" role="dialog" aria-modal="true" aria-label="Welcome tour">
+  <div class="onb-card">
+    <div class="art" id="onbArt"></div>
+    <h2 id="onbTitle"></h2>
+    <p id="onbText"></p>
+    <div class="dots" id="onbDots"><i class="on"></i><i></i><i></i></div>
+    <div class="row" style="justify-content:center">
+      <button class="btn ghost" id="onbSkip">Skip</button>
+      <button class="btn" id="onbNext">Next</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f27ce"/><stop offset="1" stop-color="#433bff"/></linearGradient>
+</defs></svg>
+
+<script>
+"use strict";
+/* ============ storage ============ */
+const LS_KEY = "studysprint_v1";
+const $ = id => document.getElementById(id);
+const uid = () => "id" + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const todayStr = () => { const d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+function blankState(){ return { exams:[], subjects:[], tasks:[], sessions:[], days:{}, onboarded:false, focusLen:25, breakLen:5 }; }
+let S;
+try { S = JSON.parse(localStorage.getItem(LS_KEY)) || blankState(); }
+catch(e){ S = blankState(); }
+S = Object.assign(blankState(), S);
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }catch(e){} }
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2200); }
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ============ navigation ============ */
+document.querySelectorAll("nav.tabs button").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    document.querySelectorAll("nav.tabs button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+    $(b.dataset.view).classList.add("active");
+    window.scrollTo({top:0, behavior:"smooth"});
+    if(b.dataset.view==="view-stats") renderStats();
+  });
+});
+
+/* ============ exams ============ */
+function fmtDate(ds){ const d=new Date(ds+"T00:00:00"); return d.toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short",year:"numeric"}); }
+function countdownParts(targetMs){
+  let diff = Math.max(0, targetMs - Date.now());
+  const days = Math.floor(diff/86400000); diff -= days*86400000;
+  const hrs = Math.floor(diff/3600000); diff -= hrs*3600000;
+  const mins = Math.floor(diff/60000); diff -= mins*60000;
+  const secs = Math.floor(diff/1000);
+  return {days,hrs,mins,secs, past: targetMs <= Date.now()};
+}
+function renderExams(){
+  const list=$("examList"); list.innerHTML="";
+  $("examEmpty").style.display = S.exams.length? "none":"block";
+  const sorted=[...S.exams].sort((a,b)=> new Date(a.date)-new Date(b.date));
+  sorted.forEach(ex=>{
+    const card=document.createElement("div"); card.className="card exam-card"; card.style.marginBottom="12px";
+    const R=44, C=2*Math.PI*R;
+    card.innerHTML =
+      '<div class="ring-wrap" role="img" aria-label="Countdown ring">'+
+        '<svg width="104" height="104" viewBox="0 0 104 104">'+
+        '<circle class="ring-bg" cx="52" cy="52" r="'+R+'" fill="none" stroke-width="10"/>'+
+        '<circle class="ring-fg" data-ex="'+ex.id+'" cx="52" cy="52" r="'+R+'" fill="none" stroke-width="10" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="0"/></svg>'+
+        '<div class="ring-center"><div><b data-days="'+ex.id+'">–</b><br><span>days</span></div></div></div>'+
+      '<div class="exam-info"><h3>'+esc(ex.name)+'</h3><p class="date-line">'+fmtDate(ex.date)+'</p>'+
+        '<div class="count-grid">'+
+          '<div class="count-cell"><b data-cd-d="'+ex.id+'">–</b><span>days</span></div>'+
+          '<div class="count-cell"><b data-cd-h="'+ex.id+'">–</b><span>hrs</span></div>'+
+          '<div class="count-cell"><b data-cd-m="'+ex.id+'">–</b><span>min</span></div>'+
+          '<div class="count-cell"><b data-cd-s="'+ex.id+'">–</b><span>sec</span></div>'+
+        '</div>'+
+        '<div class="exam-actions"><button class="icon-btn danger" data-del-exam="'+ex.id+'" title="Delete this exam" aria-label="Delete exam '+esc(ex.name)+'">'+
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/></svg></button>'+
+        '<span class="helper" data-exmsg="'+ex.id+'" style="margin:0"></span></div></div>';
+    list.appendChild(card);
+  });
+  list.querySelectorAll("[data-del-exam]").forEach(b=>b.addEventListener("click",()=>{
+    S.exams = S.exams.filter(e=>e.id!==b.dataset.delExam); save(); renderExams(); toast("Exam deleted.");
+  }));
+  tickCountdowns();
+}
+function tickCountdowns(){
+  S.exams.forEach(ex=>{
+    const p=countdownParts(new Date(ex.date+"T00:00:00").getTime());
+    const set=(sel,v)=>{const el=document.querySelector('[data-cd-'+sel+'="'+ex.id+'"]'); if(el) el.textContent=v;};
+    set("d",p.days); set("h",String(p.hrs).padStart(2,"0")); set("m",String(p.mins).padStart(2,"0")); set("s",String(p.secs).padStart(2,"0"));
+    const dEl=document.querySelector('[data-days="'+ex.id+'"]'); if(dEl) dEl.textContent=p.days;
+    const ring=document.querySelector('[data-ex="'+ex.id+'"]');
+    if(ring){ const C=2*Math.PI*44; const frac=Math.min(1,p.days/365); ring.style.strokeDashoffset=(C*(1-frac)).toFixed(1); }
+    const msg=document.querySelector('[data-exmsg="'+ex.id+'"]');
+    if(msg) msg.textContent = p.past ? "This date has passed — all the best, it went well!" :
+      p.days===0 ? "It's today. Deep breath — you've got this." :
+      p.days===1 ? "Tomorrow! Light revision only." : p.days+" days of prep left. Steady wins.";
+  });
+}
+setInterval(tickCountdowns,1000);
+$("addExamBtn").addEventListener("click",()=>{
+  const name=$("examName").value.trim(), date=$("examDate").value;
+  if(!name){ toast("Give your exam a name first."); $("examName").focus(); return; }
+  if(!date){ toast("Pick the exam date."); $("examDate").focus(); return; }
+  if(new Date(date+"T00:00:00") < new Date(todayStr()+"T00:00:00")){ toast("That date is in the past — pick a future date."); return; }
+  S.exams.push({id:uid(),name,date}); save();
+  $("examName").value=""; $("examDate").value="";
+  renderExams(); toast("Exam added — countdown started.");
+  animateIn($("examList").lastElementChild);
+});
+
+/* ============ subjects & chapters ============ */
+function subjProgress(su){ if(!su.chapters.length) return 0; return Math.round(100*su.chapters.filter(c=>c.done).length/su.chapters.length); }
+function renderSubjects(){
+  const list=$("subjList"); list.innerHTML="";
+  $("subjEmpty").style.display = S.subjects.length? "none":"block";
+  S.subjects.forEach(su=>{
+    const pct=subjProgress(su);
+    const card=document.createElement("div"); card.className="card"; card.style.marginBottom="12px";
+    let chHtml="";
+    su.chapters.forEach(ch=>{
+      chHtml += '<div class="chapter'+(ch.done?" done":"")+'">'+
+        '<input type="checkbox" data-ch="'+ch.id+'" data-su="'+su.id+'" '+(ch.done?"checked":"")+' aria-label="Mark chapter '+esc(ch.name)+' done">'+
+        '<label data-chlabel="'+ch.id+'">'+esc(ch.name)+'</label>'+
+        (ch.revision && !ch.done ? '<span class="rev">Needs revision</span>' : "")+
+        '<button class="icon-btn" data-rev="'+ch.id+'" data-su="'+su.id+'" title="'+(ch.revision?"Remove from revision queue":"Flag for revision")+'" aria-label="Toggle revision flag">'+
+          '<svg viewBox="0 0 24 24" fill="'+(ch.revision?"#fbbf24":"none")+'" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></button>'+
+        '<button class="icon-btn danger" data-delch="'+ch.id+'" data-su="'+su.id+'" title="Delete chapter" aria-label="Delete chapter '+esc(ch.name)+'">'+
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'+
+      '</div>';
+    });
+    card.innerHTML =
+      '<div class="subj-head"><span class="swatch" style="background:'+esc(su.color)+'"></span><h3>'+esc(su.name)+'</h3>'+
+      '<span class="pct">'+pct+'%</span>'+
+      '<button class="icon-btn danger" data-delsu="'+su.id+'" title="Delete subject" aria-label="Delete subject '+esc(su.name)+'">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/></svg></button></div>'+
+      '<div class="pbar" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100" aria-label="'+esc(su.name)+' progress"><i style="width:'+pct+'%"></i></div>'+
+      '<p class="helper" style="margin:2px 0 8px">'+su.chapters.filter(c=>c.done).length+' of '+su.chapters.length+' chapters done</p>'+
+      '<div data-chapters>'+chHtml+'</div>'+
+      '<div class="row" style="margin-top:10px"><div style="flex:1;min-width:140px"><input type="text" data-newch="'+su.id+'" placeholder="Add a chapter, e.g. Thermodynamics" maxlength="60" aria-label="New chapter name"></div>'+
+      '<button class="btn small" data-addch="'+su.id+'">Add chapter</button></div>';
+    list.appendChild(card);
+  });
+  // wire
+  list.querySelectorAll("[data-addch]").forEach(b=>b.addEventListener("click",()=>{
+    const su=S.subjects.find(x=>x.id===b.dataset.addch); const inp=list.querySelector('[data-newch="'+su.id+'"]');
+    const name=inp.value.trim(); if(!name){ toast("Type a chapter name first."); inp.focus(); return; }
+    su.chapters.push({id:uid(),name,done:false,revision:false}); save(); renderSubjects(); renderTaskSubjOptions(); toast("Chapter added.");
+  }));
+  list.querySelectorAll("[data-newch]").forEach(inp=>inp.addEventListener("keydown",e=>{
+    if(e.key==="Enter"){ const btn=list.querySelector('[data-addch="'+inp.dataset.newch+'"]'); if(btn) btn.click(); }
+  }));
+  list.querySelectorAll("[data-ch]").forEach(cb=>cb.addEventListener("change",()=>{
+    const su=S.subjects.find(x=>x.id===cb.dataset.su); const ch=su.chapters.find(c=>c.id===cb.dataset.ch);
+    ch.done=cb.checked; if(ch.done) ch.revision=false;
+    save(); renderSubjects(); markDayActive(); toast(ch.done? "Chapter done — nice." : "Marked not done.");
+  }));
+  list.querySelectorAll("[data-rev]").forEach(b=>b.addEventListener("click",()=>{
+    const su=S.subjects.find(x=>x.id===b.dataset.su); const ch=su.chapters.find(c=>c.id===b.dataset.rev);
+    ch.revision=!ch.revision; save(); renderSubjects(); toast(ch.revision? "Added to revision queue." : "Removed from revision queue.");
+  }));
+  list.querySelectorAll("[data-delch]").forEach(b=>b.addEventListener("click",()=>{
+    const su=S.subjects.find(x=>x.id===b.dataset.su);
+    su.chapters=su.chapters.filter(c=>c.id!==b.dataset.delch); save(); renderSubjects(); toast("Chapter deleted.");
+  }));
+  list.querySelectorAll("[data-delsu]").forEach(b=>b.addEventListener("click",()=>{
+    S.subjects=S.subjects.filter(x=>x.id!==b.dataset.delsu);
+    S.tasks=S.tasks.filter(t=>t.subjectId!==b.dataset.delsu);
+    save(); renderSubjects(); renderTasks(); renderTaskSubjOptions(); toast("Subject deleted.");
+  }));
+}
+$("addSubjBtn").addEventListener("click",()=>{
+  const name=$("subjName").value.trim();
+  if(!name){ toast("Type a subject name first."); $("subjName").focus(); return; }
+  S.subjects.push({id:uid(),name,color:$("subjColor").value,chapters:[]});
+  save(); $("subjName").value=""; renderSubjects(); renderTaskSubjOptions(); toast("Subject added — now add chapters.");
+});
+$("subjName").addEventListener("keydown",e=>{ if(e.key==="Enter") $("addSubjBtn").click(); });
+
+/* ============ tasks ============ */
+function renderTaskSubjOptions(){
+  const sel=$("taskSubj"); sel.innerHTML="";
+  if(!S.subjects.length){ const o=document.createElement("option"); o.textContent="Add a subject first"; sel.appendChild(o); return; }
+  S.subjects.forEach(su=>{ const o=document.createElement("option"); o.value=su.id; o.textContent=su.name; sel.appendChild(o); });
+}
+function renderTasks(){
+  const list=$("taskList"); list.innerHTML="";
+  const todays=S.tasks.filter(t=>t.date===todayStr());
+  $("taskEmpty").style.display = todays.length? "none":"block";
+  todays.forEach(t=>{
+    const su=S.subjects.find(x=>x.id===t.subjectId);
+    const div=document.createElement("div"); div.className="task"+(t.done?" done":"");
+    div.innerHTML='<input type="checkbox" data-task="'+t.id+'" '+(t.done?"checked":"")+' aria-label="Mark task done">'+
+      '<div class="t-main"><b>'+esc(t.topic)+'</b><span>'+esc(su?su.name:"Subject")+' · '+t.minutes+' min</span></div>'+
+      '<button class="icon-btn danger" data-deltask="'+t.id+'" title="Delete task" aria-label="Delete task"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>';
+    list.appendChild(div);
+  });
+  list.querySelectorAll("[data-task]").forEach(cb=>cb.addEventListener("change",()=>{
+    const t=S.tasks.find(x=>x.id===cb.dataset.task); t.done=cb.checked; save(); renderTasks();
+    if(t.done){ markDayActive(); toast("Task done — streak kept alive."); }
+  }));
+  list.querySelectorAll("[data-deltask]").forEach(b=>b.addEventListener("click",()=>{
+    S.tasks=S.tasks.filter(x=>x.id!==b.dataset.deltask); save(); renderTasks(); toast("Task deleted.");
+  }));
+}
+$("addTaskBtn").addEventListener("click",()=>{
+  if(!S.subjects.length){ toast("Add a subject first, then plan tasks."); return; }
+  const topic=$("taskTopic").value.trim();
+  if(!topic){ toast("What will you study? Type a topic."); $("taskTopic").focus(); return; }
+  let minutes=parseInt($("taskMin").value,10); if(!(minutes>=5)) minutes=45; if(minutes>480) minutes=480;
+  S.tasks.push({id:uid(),subjectId:$("taskSubj").value,topic,minutes,done:false,date:todayStr()});
+  save(); $("taskTopic").value=""; renderTasks(); toast("Task added to today.");
+});
+$("taskTopic").addEventListener("keydown",e=>{ if(e.key==="Enter") $("addTaskBtn").click(); });
+
+/* ============ streak & activity ============ */
+function markDayActive(){
+  const t=todayStr(); S.days[t]=true; save(); updateStreak();
+}
+function calcStreak(){
+  let n=0; const d=new Date();
+  if(!S.days[todayStr()]) d.setDate(d.getDate()-1); // streak counts if active today or yesterday
+  while(true){ const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    if(S.days[k]){ n++; d.setDate(d.getDate()-1); } else break; }
+  return n;
+}
+function updateStreak(){ const n=calcStreak(); $("streakNum").textContent=n; const sd=$("stDay"); if(sd) sd.textContent=n; }
+
+/* ============ pomodoro ============ */
+const T={mode:"focus",total:25*60,left:25*60,running:false,h:null};
+const ARC=653.45;
+function fmtT(s){ return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); }
+function timerPaint(){
+  $("timerTime").textContent=fmtT(T.left);
+  $("timerArc").style.strokeDashoffset=(ARC*(1-T.left/T.total)).toFixed(1);
+  $("timerLabel").textContent = T.running ? (T.mode==="focus"?"focusing…":"on break…") : (T.left<T.total?"paused":"ready to focus");
+  $("timerToggleTxt").textContent = T.running? "Pause" : (T.left<T.total? "Resume":"Start");
+}
+function setMode(m){
+  T.mode=m; T.running=false; clearInterval(T.h);
+  T.total=(m==="focus"? S.focusLen : S.breakLen)*60; T.left=T.total;
+  $("modeFocus").classList.toggle("on",m==="focus"); $("modeBreak").classList.toggle("on",m==="break");
+  timerPaint();
+}
+$("modeFocus").addEventListener("click",()=>setMode("focus"));
+$("modeBreak").addEventListener("click",()=>setMode("break"));
+$("timerToggle").addEventListener("click",()=>{
+  if(T.running){ T.running=false; clearInterval(T.h); timerPaint(); return; }
+  T.running=true; timerPaint();
+  T.h=setInterval(()=>{
+    T.left--;
+    if(T.left<=0){
+      clearInterval(T.h); T.running=false;
+      if(T.mode==="focus"){
+        S.sessions.push({date:todayStr(),minutes:S.focusLen}); markDayActive(); save();
+        $("sessCount").textContent=S.sessions.length;
+        toast("Focus session complete — "+S.focusLen+" minutes logged. Take a break!");
+        setMode("break");
+      } else { toast("Break over — ready for another round?"); setMode("focus"); }
+      return;
+    }
+    timerPaint();
+  },1000);
+});
+$("timerReset").addEventListener("click",()=>{ setMode(T.mode); toast("Timer reset."); });
+$("focusLen").addEventListener("change",()=>{ let v=parseInt($("focusLen").value,10); if(!(v>=5))v=25; if(v>120)v=120; S.focusLen=v; save(); if(T.mode==="focus") setMode("focus"); });
+$("breakLen").addEventListener("change",()=>{ let v=parseInt($("breakLen").value,10); if(!(v>=1))v=5; if(v>60)v=60; S.breakLen=v; save(); if(T.mode==="break") setMode("break"); });
+
+/* ============ stats ============ */
+function minutesOn(dateStr){
+  const taskMin=S.tasks.filter(t=>t.date===dateStr&&t.done).reduce((a,t)=>a+t.minutes,0);
+  const sesMin=S.sessions.filter(s=>s.date===dateStr).reduce((a,s)=>a+s.minutes,0);
+  return taskMin+sesMin;
+}
+function renderStats(){
+  updateStreak();
+  const chDone=S.subjects.reduce((a,su)=>a+su.chapters.filter(c=>c.done).length,0);
+  const chTot=S.subjects.reduce((a,su)=>a+su.chapters.length,0);
+  $("stCh").textContent=chDone;
+  const hrs=(S.sessions.reduce((a,s)=>a+s.minutes,0)/60);
+  $("stHrs").textContent=hrs>=10? Math.round(hrs) : hrs.toFixed(1).replace(/\.0$/,"");
+  $("stSyl").textContent=(chTot? Math.round(100*chDone/chTot):0)+"%";
+  // weekly chart
+  const chart=$("weekChart"); chart.innerHTML="";
+  const vals=[];
+  for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i);
+    const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    vals.push({label:d.toLocaleDateString("en-IN",{weekday:"narrow"}),min:minutesOn(k),today:i===0}); }
+  const max=Math.max(60,...vals.map(v=>v.min));
+  vals.forEach(v=>{
+    const col=document.createElement("div"); col.className="bar-col"+(v.today?" today":"");
+    col.innerHTML='<div class="bar" style="height:'+Math.max(4,Math.round(100*v.min/max))+'%" title="'+v.min+' min"></div><small>'+v.label+'</small>';
+    chart.appendChild(col);
+  });
+  // revision queue
+  const rl=$("revList"); rl.innerHTML=""; let n=0;
+  S.subjects.forEach(su=>su.chapters.forEach(ch=>{
+    if(ch.revision && !ch.done){ n++;
+      const div=document.createElement("div"); div.className="rev-item";
+      div.innerHTML='<span class="swatch" style="background:'+esc(su.color)+'"></span><span><b>'+esc(ch.name)+'</b><br><small style="color:var(--muted)">'+esc(su.name)+'</small></span>'+
+        '<span class="due">Revise today</span>'+
+        '<button class="btn small ghost" data-donerev="'+ch.id+'" data-su="'+su.id+'">Done</button>';
+      rl.appendChild(div);
+    }
+  }));
+  $("revEmpty").style.display=n?"none":"block";
+  rl.querySelectorAll("[data-donerev]").forEach(b=>b.addEventListener("click",()=>{
+    const su=S.subjects.find(x=>x.id===b.dataset.su); const ch=su.chapters.find(c=>c.id===b.dataset.donerev);
+    ch.done=true; ch.revision=false; save(); renderStats(); markDayActive(); toast("Revised and done — well played.");
+  }));
+}
+
+/* ============ onboarding ============ */
+const ONB=[
+ {t:"Welcome to StudySprint",x:"Your exam command centre: countdowns, chapter tracking, daily plans and a focus timer — all in one place, all saved on your device.",
+  art:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg>'},
+ {t:"1. Add your exams",x:"Type the exam name and pick its date. StudySprint counts down every second so the deadline always feels real.",
+  art:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>'},
+ {t:"2. Break it into chapters",x:"Add subjects, split them into chapters, tick them off. Your syllabus bar and streak grow with every small win.",
+  art:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>'}
+];
+let onbI=0;
+function showOnb(i){
+  onbI=i; $("onb").style.display="grid";
+  $("onbTitle").textContent=ONB[i].t; $("onbText").textContent=ONB[i].x; $("onbArt").innerHTML=ONB[i].art;
+  document.querySelectorAll("#onbDots i").forEach((d,k)=>d.classList.toggle("on",k===i));
+  $("onbNext").textContent = i===ONB.length-1? "Start studying":"Next";
+}
+function hideOnb(){ $("onb").style.display="none"; S.onboarded=true; save(); }
+$("onbNext").addEventListener("click",()=>{ if(onbI<ONB.length-1) showOnb(onbI+1); else hideOnb(); });
+$("onbSkip").addEventListener("click",hideOnb);
+
+/* ============ animation helpers ============ */
+function animateIn(el){
+  if(!el || !window.Motion || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  try{ Motion.animate(el,{opacity:[0,1],transform:["translateY(14px)","translateY(0)"]},{duration:.45,easing:"cubic-bezier(.22,1,.36,1)"}); }catch(e){}
+}
+function countUp(el,to,suffix){
+  suffix=suffix||"";
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches || !window.Motion){ el.textContent=to+suffix; return; }
+  try{
+    const o={v:0};
+    Motion.animate(v=>{ o.v=v; el.textContent=Math.round(o.v)+suffix; },{duration:.9,easing:"ease-out"});
+  }catch(e){ el.textContent=to+suffix; }
+}
+
+/* ============ init ============ */
+(function init(){
+  const d=new Date();
+  $("todayLine").textContent=d.toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long"});
+  $("focusLen").value=S.focusLen; $("breakLen").value=S.breakLen;
+  $("sessCount").textContent=S.sessions.length;
+  renderExams(); renderSubjects(); renderTaskSubjOptions(); renderTasks(); updateStreak();
+  setMode("focus");
+  document.querySelectorAll("#view-exams .card, #view-study .card").forEach((el,i)=>{
+    if(window.Motion && !matchMedia("(prefers-reduced-motion: reduce)").matches){
+      try{ Motion.animate(el,{opacity:[0,1],transform:["translateY(16px)","translateY(0)"]},{duration:.5,delay:i*.07,easing:"cubic-bezier(.22,1,.36,1)"}); }catch(e){}
+    }
+  });
+  if(!S.onboarded) showOnb(0);
+})();
+</script>
+</body>
+</html>
