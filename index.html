@@ -577,7 +577,7 @@ const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matche
     if(!ov.classList.contains("gone")) raf=requestAnimationFrame(loop); else cancelAnimationFrame(raf);
   })();
   }
-  const quick=S.introSeen, DUR=quick?1100:3000;
+  const quick=S.introSeen, DUR=quick?1100:4000;
   if(!reduceMotion()){ $("introBarFill").style.transition="width "+(DUR/1000)+"s linear"; requestAnimationFrame(()=>{ $("introBarFill").style.width="100%"; }); }
   else { $("introBarFill").style.width="100%"; }
   let done=false;
